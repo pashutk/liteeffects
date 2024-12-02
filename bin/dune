@@ -1,0 +1,4 @@
+(executable
+ (public_name liteeffects)
+ (name main)
+ (libraries liteeffects))

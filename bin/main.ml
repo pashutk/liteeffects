@@ -1,0 +1,1 @@
+let () = Liteeffects.Cli.main ()

@@ -1,0 +1,8 @@
+(library
+ (name liteeffects)
+ (libraries cmdliner))
+
+(ocamllex lexer)
+
+(menhir
+ (modules parser))
