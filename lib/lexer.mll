@@ -11,8 +11,14 @@ let whitespace = [' ' '\t' '\n' '\r']
 rule token = parse
     | whitespace { token lexbuf }
     | "const" { CONST }
-    | id as word { ID word }
     | "+" { PLUS }
     | "="   { EQUALS }
+    | "function" { FUNCTION }
+    | "(" { LPAREN }
+    | ")" { RPAREN }
+    | "{" { LBRACE }
+    | "}" { RBRACE }
+    | "," { COMMA }
     | int as i { INT (int_of_string(i)) }
+    | id as word { ID word }
     | eof { EOF }
