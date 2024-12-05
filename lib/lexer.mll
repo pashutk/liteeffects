@@ -1,12 +1,18 @@
-let space = [' ']+
+{
+    open Parser
+}
 
 let digit = ['0'-'9']
+let int = '-'? digit+
+let letter = ['a'-'z' 'A'-'Z']
+let id = letter (letter | digit | '_')*
+let whitespace = [' ' '\t' '\n' '\r']
 
 rule token = parse
-    | eof { Parser.Eof }
-    | space { token lexbuf }
-    | '\n' { Parser.Eof }
-    | '+' { Parser.Plus }
-    | digit+ { Parser.Int (int_of_string (Lexing.lexeme lexbuf)) }
-    | digit+ '.' digit+ { Parser.Float (float_of_string (Lexing.lexeme lexbuf)) }
-
+    | whitespace { token lexbuf }
+    | "const" { CONST }
+    | id as word { ID word }
+    | "+" { PLUS }
+    | "="   { EQUALS }
+    | int as i { INT (int_of_string(i)) }
+    | eof { EOF }

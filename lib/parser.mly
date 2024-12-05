@@ -1,21 +1,24 @@
-%token Eof
-%token<int> Int
-%token Plus
-%token<float> Float
-%start<Ast.exp> main
-
-%left Plus
-
 %{ open Ast %}
+
+%token EOF
+%token <int> INT
+%token PLUS
+%token EQUALS
+%token CONST
+%token <string> ID
+
+%left PLUS
+%nonassoc UMINUS
+
+%start<Ast.exp> main
 
 %%
 
-main: expr Eof { $1 }
+main: e = expr EOF { e }
 
 expr:
-| Int { Int $1 }
-| expr Plus expr { Add ($1, $3) }
-| Float { Float $1 }
-
+| INT { Int $1 }
+| CONST id = ID EQUALS e = expr { Const (id, e) }
+| expr PLUS expr { Add ($1, $3) }
 
 %%
