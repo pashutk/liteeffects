@@ -4,6 +4,7 @@ let rec ltts = function
   | Ast.Bound (id, _value, _exp) -> "const " ^ id
   | Ast.Function (name, _args, exp) -> "fn " ^ name ^ ": " ^ ltts exp
   | Ast.Ref name -> "ref " ^ name
+  | Ast.Mult (left, right) -> "mult " ^ ltts left ^ " * " ^ ltts right
 
 let lbts = function
   | Parser.FUNCTION -> "fun"

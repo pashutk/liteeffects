@@ -20,6 +20,7 @@ rule token = parse
     | "{" { LBRACE }
     | "}" { RBRACE }
     | "," { COMMA }
+    | "*" { ASTERISK }
     | int as i { INT (int_of_string(i)) }
     | id as word { ID word }
     | eof { EOF }

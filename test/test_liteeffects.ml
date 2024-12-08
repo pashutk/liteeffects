@@ -5,6 +5,8 @@ let rec pp_ast fmt = function
   | Liteeffects.Ast.Ref name -> Format.fprintf fmt "Ref %s" name
   | Liteeffects.Ast.Add (a, b) ->
       Format.fprintf fmt "Add (%a, %a)" pp_ast a pp_ast b
+  | Liteeffects.Ast.Mult (a, b) ->
+      Format.fprintf fmt "Mult (%a, %a)" pp_ast a pp_ast b
   | Liteeffects.Ast.Function (name, args, exp) ->
       Format.fprintf fmt "Function (%s, %a, %a)" name
         (Format.pp_print_list Format.pp_print_string)
@@ -19,6 +21,11 @@ let test_add () =
   Alcotest.check ast_testable "parse '1 + 2'"
     (Add (Int 1, Int 2))
     (parse "1 + 2")
+
+let test_mult () =
+  Alcotest.check ast_testable "parse '1 * 2'"
+    (Mult (Int 1, Int 2))
+    (parse "1 * 2")
 
 let test_const () =
   Alcotest.check ast_testable "parse const binding"
@@ -39,17 +46,25 @@ let test_function () =
     (Function ("name", [ "a"; "b"; "c" ], Int 1))
     (parse "function name(a, b, c) { 1 }");
   Alcotest.check ast_testable "parse function w const bindings"
-    (Function ("addAndLet", [], Bound ("result", Int 5, Ref "result")))
-    (parse "function addAndLet() {\nconst result = 5;\nresult\n}")
-(* Alcotest.check ast_testable "parse function w const bindings"
-   (Function ("addAndLet", [], Int 1))
-   (parse
-      "function addAndLet() {\n\
-       const x = 5;\n\
-       const y = 3;\n\
-       const result = x + y * 2;\n\
-       result\n\
-       }") *)
+    (Function
+       ( "addAndLet",
+         [],
+         Bound
+           ( "x",
+             Int 5,
+             Bound
+               ( "y",
+                 Int 3,
+                 Bound
+                   ("result", Add (Ref "x", Mult (Ref "y", Int 2)), Ref "result")
+               ) ) ))
+    (parse
+       "function addAndLet() {\n\
+        const x = 5;\n\
+        const y = 3;\n\
+        const result = x + y * 2;\n\
+        result\n\
+        }")
 
 let () =
   let open Alcotest in
@@ -59,6 +74,7 @@ let () =
         [
           test_case "Int" `Quick test_int;
           test_case "Add" `Quick test_add;
+          test_case "Mult" `Quick test_mult;
           test_case "Const" `Quick test_const;
           test_case "Function" `Quick test_function;
         ] );
