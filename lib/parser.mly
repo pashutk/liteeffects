@@ -29,7 +29,7 @@
 
 main: e = expr EOF { e }
 
-lambda: LPAREN params = separated_list(COMMA, ID) RPAREN ARROW LBRACE e = expr RBRACE { Lambda (params, e) }
+lambda: LPAREN params = separated_list(COMMA, ID) RPAREN ARROW LBRACE? e = expr RBRACE? { Lambda (params, e) }
 
 app: id = ID LPAREN args = separated_list(COMMA, expr) RPAREN { App (id, args) }
 

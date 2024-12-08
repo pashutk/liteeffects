@@ -83,7 +83,10 @@ let test_lambda () =
         const y = 3;\n\
         const result = x + y * 2;\n\
         result\n\
-        }")
+        }");
+  Alcotest.check ast_testable "parse lambda with no braces"
+    (Lambda ([], Int 1))
+    (parse "() => 1 ")
 
 let test_app () =
   Alcotest.check ast_testable "parse simple application"
