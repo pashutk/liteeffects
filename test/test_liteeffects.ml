@@ -11,6 +11,8 @@ let rec pp_ast fmt = function
       Format.fprintf fmt "Lambda (%a, %a)"
         (Format.pp_print_list Format.pp_print_string)
         params pp_ast exp
+  | Liteeffects.Ast.App (id, exp) ->
+      Format.fprintf fmt "App (%s, %a)" id pp_ast exp
   | Liteeffects.Ast.Bound (name, value, exp) ->
       Format.fprintf fmt "Bound (%s, %a, %a)" name pp_ast value pp_ast exp
 
@@ -68,6 +70,14 @@ let test_lambda () =
         result\n\
         }")
 
+let test_app () =
+  Alcotest.check ast_testable "parse simple application"
+    (App ("withArgs", Int 2))
+    (parse "withArgs(2)");
+  Alcotest.check ast_testable "parse lambda with application"
+    (Lambda ([], Add (Int 1, App ("withArgs", Int 2))))
+    (parse "() => { 1 + withArgs(2) }")
+
 let () =
   let open Alcotest in
   run "Parser"
@@ -79,5 +89,6 @@ let () =
           test_case "Mult" `Quick test_mult;
           test_case "Const" `Quick test_const;
           test_case "Lambda" `Quick test_lambda;
+          test_case "App" `Quick test_app;
         ] );
     ]

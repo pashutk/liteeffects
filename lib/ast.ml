@@ -6,3 +6,4 @@ type exp =
   | Bound of string * exp * exp
   | Ref of string
   | Mult of exp * exp
+  | App of string * exp

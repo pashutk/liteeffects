@@ -13,7 +13,7 @@ const withArgs = (a) => {
 
 const application = () => {
   1 + withArgs(2)
-}a
+}
 // 6
 
 const circleSquare = (r) => {
