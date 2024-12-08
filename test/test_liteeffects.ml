@@ -33,7 +33,10 @@ let test_const () =
     (parse "const x = 1; x");
   Alcotest.check ast_testable "parse multiple const bindings"
     (Bound ("x", Int 1, Bound ("y", Int 2, Add (Ref "x", Ref "y"))))
-    (parse "const x = 1; const y = 2; x + y")
+    (parse "const x = 1; const y = 2; x + y");
+  Alcotest.check ast_testable "parse lambda const binding"
+    (Bound ("f", Lambda ([], Int 1), Ref "f"))
+    (parse "const f = () => { 1 }; f")
 
 let test_lambda () =
   Alcotest.check ast_testable "parse function w no args"
