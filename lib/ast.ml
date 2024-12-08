@@ -6,6 +6,7 @@ type exp =
   | Bound of string * exp * exp
   | Ref of string
   | Mult of exp * exp
-  | App of string * exp
+  | App of string * exp list
   | Perform of string * string * exp list
   | Effect of string * string list
+  | Handle of exp * string * (string * exp) list

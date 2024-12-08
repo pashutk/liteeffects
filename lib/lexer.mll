@@ -13,6 +13,9 @@ rule token = parse
     | "const" { CONST }
     | "perform" { PERFORM }
     | "effect" { EFFECT }
+    | "handle" { HANDLE }
+    | "with" { WITH }
+    | ":" { COLON }
     | ";" { SEMICOLON }
     | "+" { PLUS }
     | "=" { EQUALS }

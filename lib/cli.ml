@@ -6,9 +6,10 @@ let rec ltts = function
       "lambda (" ^ String.concat ", " params ^ ") => " ^ ltts exp
   | Ast.Ref name -> "ref " ^ name
   | Ast.Mult (left, right) -> "mult " ^ ltts left ^ " * " ^ ltts right
-  | Ast.App (id, exp) -> "app " ^ id ^ "(" ^ ltts exp ^ ")"
+  | Ast.App (id, _args) -> "app " ^ id
   | Ast.Perform (effect, _action, _exp) -> "perform " ^ effect
   | Ast.Effect (name, _actions) -> "effect " ^ name
+  | Ast.Handle (_exp, effect, _actions) -> "handle " ^ effect
 
 let lbts = function
   | Parser.ARROW -> "arrow"
