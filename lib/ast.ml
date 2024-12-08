@@ -7,3 +7,4 @@ type exp =
   | Ref of string
   | Mult of exp * exp
   | App of string * exp
+  | Perform of string * string * exp list

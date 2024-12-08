@@ -7,6 +7,7 @@ let rec ltts = function
   | Ast.Ref name -> "ref " ^ name
   | Ast.Mult (left, right) -> "mult " ^ ltts left ^ " * " ^ ltts right
   | Ast.App (id, exp) -> "app " ^ id ^ "(" ^ ltts exp ^ ")"
+  | Ast.Perform (effect, _action, _exp) -> "perform " ^ effect
 
 let lbts = function
   | Parser.ARROW -> "arrow"

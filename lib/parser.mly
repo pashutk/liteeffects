@@ -13,6 +13,8 @@
 %token SEMICOLON
 %token ASTERISK
 %token EQUALS ARROW
+%token PERFORM
+%token DOT
 
 %left PLUS
 %nonassoc UMINUS
@@ -30,6 +32,7 @@ app: id = ID LPAREN e = expr RPAREN { App (id, e) }
 expr:
 | INT { Int $1 }
 | CONST id = ID EQUALS value = expr SEMICOLON e = expr { Bound (id, value, e) }
+| PERFORM effect = ID DOT action = ID LPAREN args = separated_list(COMMA, expr) RPAREN { Perform (effect, action, args) }
 | expr PLUS expr { Add ($1, $3) }
 | expr ASTERISK expr { Mult ($1, $3) }
 | lambda { $1 }

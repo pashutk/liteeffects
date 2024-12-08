@@ -16,19 +16,20 @@ const application = () => {
 }
 // 6
 
-const circleSquare = (r) => {
-  const pi = perform readPi()
-  pi * r * r
+effect Math {
+  pi,
+  sin
 }
 
-const estimatePi = () => {
-  3
+const circleSquare = (r) => {
+  const pi = perform Math.pi()
+  pi * r * r
 }
 
 const calculate = () => {
   const r = 5
-  handle circleSquare(r) with {
-    readPi: estimatePi
+  handle circleSquare(r) with Math {
+    pi: () => 3
   }
 }
 ```

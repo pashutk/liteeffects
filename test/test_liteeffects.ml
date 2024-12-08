@@ -13,6 +13,10 @@ let rec pp_ast fmt = function
         params pp_ast exp
   | Liteeffects.Ast.App (id, exp) ->
       Format.fprintf fmt "App (%s, %a)" id pp_ast exp
+  | Liteeffects.Ast.Perform (effect, action, args) ->
+      Format.fprintf fmt "Perform (%s, %s, %a)" effect action
+        (Format.pp_print_list pp_ast)
+        args
   | Liteeffects.Ast.Bound (name, value, exp) ->
       Format.fprintf fmt "Bound (%s, %a, %a)" name pp_ast value pp_ast exp
 
@@ -78,6 +82,14 @@ let test_app () =
     (Lambda ([], Add (Int 1, App ("withArgs", Int 2))))
     (parse "() => { 1 + withArgs(2) }")
 
+let test_perform () =
+  Alcotest.check ast_testable "parse simple perform call"
+    (Perform ("Effect", "action", [ Int 2 ]))
+    (parse "perform Effect.action(2)");
+  Alcotest.check ast_testable "parse perform call with multiple args"
+    (Perform ("Effect", "action", [ Int 2; Ref "a" ]))
+    (parse "perform Effect.action(2, a)")
+
 let () =
   let open Alcotest in
   run "Parser"
@@ -90,5 +102,6 @@ let () =
           test_case "Const" `Quick test_const;
           test_case "Lambda" `Quick test_lambda;
           test_case "App" `Quick test_app;
+          test_case "Perform" `Quick test_perform;
         ] );
     ]
