@@ -2,26 +2,31 @@ open Liteeffects.Cli
 
 let rec pp_ast fmt = function
   | Liteeffects.Ast.Int i -> Format.fprintf fmt "Int %d" i
+  | Liteeffects.Ast.Ref name -> Format.fprintf fmt "Ref %s" name
   | Liteeffects.Ast.Add (a, b) ->
       Format.fprintf fmt "Add (%a, %a)" pp_ast a pp_ast b
   | Liteeffects.Ast.Function (name, args, exp) ->
       Format.fprintf fmt "Function (%s, %a, %a)" name
         (Format.pp_print_list Format.pp_print_string)
         args pp_ast exp
-  | _ -> Format.fprintf fmt "Unknown"
+  | Liteeffects.Ast.Bound (name, value, exp) ->
+      Format.fprintf fmt "Bound (%s, %a, %a)" name pp_ast value pp_ast exp
 
 let ast_testable = Alcotest.testable pp_ast ( = )
-
-let test_int () =
-  Alcotest.check ast_testable "parse '1'" (Int 1) (parse "1");
-  Alcotest.check ast_testable "parse '1 + 2'"
-    (Add (Int 1, Int 2))
-    (parse "1 + 2")
+let test_int () = Alcotest.check ast_testable "parse '1'" (Int 1) (parse "1")
 
 let test_add () =
   Alcotest.check ast_testable "parse '1 + 2'"
     (Add (Int 1, Int 2))
     (parse "1 + 2")
+
+let test_const () =
+  Alcotest.check ast_testable "parse const binding"
+    (Bound ("x", Int 1, Ref "x"))
+    (parse "const x = 1; x");
+  Alcotest.check ast_testable "parse multiple const bindings"
+    (Bound ("x", Int 1, Bound ("y", Int 2, Add (Ref "x", Ref "y"))))
+    (parse "const x = 1; const y = 2; x + y")
 
 let test_function () =
   Alcotest.check ast_testable "parse function w no args"
@@ -32,7 +37,19 @@ let test_function () =
     (parse "function name(a) { 1 }");
   Alcotest.check ast_testable "parse function w multiple args"
     (Function ("name", [ "a"; "b"; "c" ], Int 1))
-    (parse "function name(a, b, c) { 1 }")
+    (parse "function name(a, b, c) { 1 }");
+  Alcotest.check ast_testable "parse function w const bindings"
+    (Function ("addAndLet", [], Bound ("result", Int 5, Ref "result")))
+    (parse "function addAndLet() {\nconst result = 5;\nresult\n}")
+(* Alcotest.check ast_testable "parse function w const bindings"
+   (Function ("addAndLet", [], Int 1))
+   (parse
+      "function addAndLet() {\n\
+       const x = 5;\n\
+       const y = 3;\n\
+       const result = x + y * 2;\n\
+       result\n\
+       }") *)
 
 let () =
   let open Alcotest in
@@ -42,6 +59,7 @@ let () =
         [
           test_case "Int" `Quick test_int;
           test_case "Add" `Quick test_add;
+          test_case "Const" `Quick test_const;
           test_case "Function" `Quick test_function;
         ] );
     ]

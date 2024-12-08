@@ -12,6 +12,7 @@
 %token LBRACE
 %token RBRACE
 %token COMMA
+%token SEMICOLON
 
 %left PLUS
 %nonassoc UMINUS
@@ -26,9 +27,9 @@ func: FUNCTION name = ID LPAREN args = separated_list(COMMA, ID) RPAREN LBRACE e
 
 expr:
 | INT { Int $1 }
-| CONST id = ID EQUALS e = expr { Const (id, e) }
+| CONST id = ID EQUALS value = expr SEMICOLON e = expr { Bound (id, value, e) }
 | expr PLUS expr { Add ($1, $3) }
 | func { $1 }
-
+| ID { Ref $1 }
 
 %%

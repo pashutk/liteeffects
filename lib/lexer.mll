@@ -11,6 +11,7 @@ let whitespace = [' ' '\t' '\n' '\r']
 rule token = parse
     | whitespace { token lexbuf }
     | "const" { CONST }
+    | ";" { SEMICOLON }
     | "+" { PLUS }
     | "="   { EQUALS }
     | "function" { FUNCTION }
