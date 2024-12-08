@@ -13,8 +13,8 @@ rule token = parse
     | "const" { CONST }
     | ";" { SEMICOLON }
     | "+" { PLUS }
-    | "="   { EQUALS }
-    | "function" { FUNCTION }
+    | "=" { EQUALS }
+    | "=>" { ARROW }
     | "(" { LPAREN }
     | ")" { RPAREN }
     | "{" { LBRACE }

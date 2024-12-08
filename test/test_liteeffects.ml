@@ -7,10 +7,10 @@ let rec pp_ast fmt = function
       Format.fprintf fmt "Add (%a, %a)" pp_ast a pp_ast b
   | Liteeffects.Ast.Mult (a, b) ->
       Format.fprintf fmt "Mult (%a, %a)" pp_ast a pp_ast b
-  | Liteeffects.Ast.Function (name, args, exp) ->
-      Format.fprintf fmt "Function (%s, %a, %a)" name
+  | Liteeffects.Ast.Lambda (params, exp) ->
+      Format.fprintf fmt "Lambda (%a, %a)"
         (Format.pp_print_list Format.pp_print_string)
-        args pp_ast exp
+        params pp_ast exp
   | Liteeffects.Ast.Bound (name, value, exp) ->
       Format.fprintf fmt "Bound (%s, %a, %a)" name pp_ast value pp_ast exp
 
@@ -35,20 +35,19 @@ let test_const () =
     (Bound ("x", Int 1, Bound ("y", Int 2, Add (Ref "x", Ref "y"))))
     (parse "const x = 1; const y = 2; x + y")
 
-let test_function () =
+let test_lambda () =
   Alcotest.check ast_testable "parse function w no args"
-    (Function ("name", [], Int 1))
-    (parse "function name() { 1 }");
+    (Lambda ([], Int 1))
+    (parse "() => { 1 }");
   Alcotest.check ast_testable "parse function w one arg"
-    (Function ("name", [ "a" ], Int 1))
-    (parse "function name(a) { 1 }");
+    (Lambda ([ "a" ], Int 1))
+    (parse "(a) => { 1 }");
   Alcotest.check ast_testable "parse function w multiple args"
-    (Function ("name", [ "a"; "b"; "c" ], Int 1))
-    (parse "function name(a, b, c) { 1 }");
+    (Lambda ([ "a"; "b"; "c" ], Int 1))
+    (parse "(a, b, c) => { 1 }");
   Alcotest.check ast_testable "parse function w const bindings"
-    (Function
-       ( "addAndLet",
-         [],
+    (Lambda
+       ( [],
          Bound
            ( "x",
              Int 5,
@@ -59,7 +58,7 @@ let test_function () =
                    ("result", Add (Ref "x", Mult (Ref "y", Int 2)), Ref "result")
                ) ) ))
     (parse
-       "function addAndLet() {\n\
+       "() => {\n\
         const x = 5;\n\
         const y = 3;\n\
         const result = x + y * 2;\n\
@@ -76,6 +75,6 @@ let () =
           test_case "Add" `Quick test_add;
           test_case "Mult" `Quick test_mult;
           test_case "Const" `Quick test_const;
-          test_case "Function" `Quick test_function;
+          test_case "Lambda" `Quick test_lambda;
         ] );
     ]

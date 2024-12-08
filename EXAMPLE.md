@@ -1,5 +1,5 @@
 ```liteeffects
-function addAndLet() {
+const addAndLet = () => {
   const x = 5
   const y = 3
   const result = x + y * 2
@@ -7,25 +7,25 @@ function addAndLet() {
 }
 // 11
 
-function withArgs(a) {
+const withArgs = (a) => {
   a + 3
 }
 
-function application () {
+const application = () => {
   1 + withArgs(2)
 }a
 // 6
 
-function circleSquare(r) {
+const circleSquare = (r) => {
   const pi = perform readPi()
   pi * r * r
 }
 
-function estimatePi() {
+const estimatePi = () => {
   3
 }
 
-function calculate() {
+const calculate = () => {
   const r = 5
   handle circleSquare(r) with {
     readPi: estimatePi

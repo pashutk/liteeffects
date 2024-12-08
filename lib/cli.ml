@@ -2,12 +2,13 @@ let rec ltts = function
   | Ast.Int _i -> "int"
   | Ast.Add (_a, _b) -> "add"
   | Ast.Bound (id, _value, _exp) -> "const " ^ id
-  | Ast.Function (name, _args, exp) -> "fn " ^ name ^ ": " ^ ltts exp
+  | Ast.Lambda (params, exp) ->
+      "lambda (" ^ String.concat ", " params ^ ") => " ^ ltts exp
   | Ast.Ref name -> "ref " ^ name
   | Ast.Mult (left, right) -> "mult " ^ ltts left ^ " * " ^ ltts right
 
 let lbts = function
-  | Parser.FUNCTION -> "fun"
+  | Parser.ARROW -> "arrow"
   | Parser.ID name -> "id " ^ name
   | _ -> "other"
 

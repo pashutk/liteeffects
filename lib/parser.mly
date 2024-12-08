@@ -3,10 +3,8 @@
 %token EOF
 %token <int> INT
 %token PLUS
-%token EQUALS
 %token CONST
 %token <string> ID
-%token FUNCTION
 %token LPAREN
 %token RPAREN
 %token LBRACE
@@ -14,6 +12,7 @@
 %token COMMA
 %token SEMICOLON
 %token ASTERISK
+%token EQUALS ARROW
 
 %left PLUS
 %nonassoc UMINUS
@@ -24,14 +23,14 @@
 
 main: e = expr EOF { e }
 
-func: FUNCTION name = ID LPAREN args = separated_list(COMMA, ID) RPAREN LBRACE e = expr RBRACE { Function (name, args, e) }
+lambda: LPAREN params = separated_list(COMMA, ID) RPAREN ARROW LBRACE e = expr RBRACE { Lambda (params, e) }
 
 expr:
 | INT { Int $1 }
 | CONST id = ID EQUALS value = expr SEMICOLON e = expr { Bound (id, value, e) }
 | expr PLUS expr { Add ($1, $3) }
 | expr ASTERISK expr { Mult ($1, $3) }
-| func { $1 }
+| lambda { $1 }
 | ID { Ref $1 }
 
 %%
