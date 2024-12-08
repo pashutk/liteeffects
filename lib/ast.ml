@@ -8,3 +8,4 @@ type exp =
   | Mult of exp * exp
   | App of string * exp
   | Perform of string * string * exp list
+  | Effect of string * string list

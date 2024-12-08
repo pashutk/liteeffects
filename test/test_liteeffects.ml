@@ -19,6 +19,10 @@ let rec pp_ast fmt = function
         args
   | Liteeffects.Ast.Bound (name, value, exp) ->
       Format.fprintf fmt "Bound (%s, %a, %a)" name pp_ast value pp_ast exp
+  | Liteeffects.Ast.Effect (name, actions) ->
+      Format.fprintf fmt "Effect (%s, %a)" name
+        (Format.pp_print_list Format.pp_print_string)
+        actions
 
 let ast_testable = Alcotest.testable pp_ast ( = )
 let test_int () = Alcotest.check ast_testable "parse '1'" (Int 1) (parse "1")
@@ -90,6 +94,11 @@ let test_perform () =
     (Perform ("Effect", "action", [ Int 2; Ref "a" ]))
     (parse "perform Effect.action(2, a)")
 
+let test_effect () =
+  Alcotest.check ast_testable "parse effect definition"
+    (Effect ("Math", [ "pi"; "sin" ]))
+    (parse "effect Math {pi, sin}")
+
 let () =
   let open Alcotest in
   run "Parser"
@@ -103,5 +112,6 @@ let () =
           test_case "Lambda" `Quick test_lambda;
           test_case "App" `Quick test_app;
           test_case "Perform" `Quick test_perform;
+          test_case "Effect" `Quick test_effect;
         ] );
     ]

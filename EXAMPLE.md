@@ -29,7 +29,8 @@ const circleSquare = (r) => {
 const calculate = () => {
   const r = 5
   handle circleSquare(r) with Math {
-    pi: () => 3
+    pi: () => 3,
+    sin: (a) => a * 2
   }
 }
 ```

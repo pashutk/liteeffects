@@ -8,6 +8,7 @@ let rec ltts = function
   | Ast.Mult (left, right) -> "mult " ^ ltts left ^ " * " ^ ltts right
   | Ast.App (id, exp) -> "app " ^ id ^ "(" ^ ltts exp ^ ")"
   | Ast.Perform (effect, _action, _exp) -> "perform " ^ effect
+  | Ast.Effect (name, _actions) -> "effect " ^ name
 
 let lbts = function
   | Parser.ARROW -> "arrow"

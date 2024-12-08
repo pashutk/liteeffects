@@ -12,6 +12,7 @@ rule token = parse
     | whitespace { token lexbuf }
     | "const" { CONST }
     | "perform" { PERFORM }
+    | "effect" { EFFECT }
     | ";" { SEMICOLON }
     | "+" { PLUS }
     | "=" { EQUALS }
