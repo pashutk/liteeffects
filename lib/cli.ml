@@ -22,7 +22,16 @@ let parse s =
 
 let main () =
   (* let lexbuf = Lexing.from_channel stdin in *)
-  let lexbuf = Lexing.from_string "function sub (a, b) { const x = 1; x }" in
+  let lexbuf =
+    Lexing.from_string
+      "const addAndLet = () => {\n\
+       const x = 5;\n\
+       const y = 3;\n\
+       const result = x + y * 2;\n\
+       result\n\
+       };\n\
+       addAndLet()"
+  in
   (* let lexbuf = Lexing.from_string "const x = 1; x" in *)
   (* print_endline (lbts (Lexer.token lexbuf)) *)
   let b = Parser.main Lexer.token lexbuf in
