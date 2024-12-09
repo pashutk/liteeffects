@@ -53,7 +53,10 @@ let test_const () =
     (parse "const x = 1; const y = 2; x + y");
   Alcotest.check ast_testable "parse lambda const binding"
     (Bound ("f", Lambda ([], Int 1), Ref "f"))
-    (parse "const f = () => { 1 }; f")
+    (parse "const f = () => { 1 }; f");
+  Alcotest.check ast_testable "parse with no semicolon"
+    (Bound ("f", Lambda ([], Int 1), App ("f", [])))
+    (parse "const f = () => { 1 }\nf()")
 
 let test_lambda () =
   Alcotest.check ast_testable "parse function w no args"
