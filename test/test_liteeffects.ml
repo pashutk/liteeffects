@@ -3,6 +3,14 @@ open Liteeffects.Cli
 let pp_pair pp_first pp_second fmt (first, second) =
   Format.fprintf fmt "(%a, %a)" pp_first first pp_second second
 
+let pp_ttype fmt = function Liteeffects.Ast.TInt -> Format.fprintf fmt "Int"
+
+let pp_lambda_param fmt (name, ttype) =
+  Format.fprintf fmt "%s, %a" name pp_ttype ttype
+
+let pp_lambda_params fmt params =
+  Format.fprintf fmt "(%a)" (Format.pp_print_list pp_lambda_param) params
+
 let rec pp_ast fmt = function
   | Liteeffects.Ast.Int i -> Format.fprintf fmt "Int %d" i
   | Liteeffects.Ast.Ref name -> Format.fprintf fmt "Ref %s" name
@@ -10,10 +18,14 @@ let rec pp_ast fmt = function
       Format.fprintf fmt "Add (%a, %a)" pp_ast a pp_ast b
   | Liteeffects.Ast.Mult (a, b) ->
       Format.fprintf fmt "Mult (%a, %a)" pp_ast a pp_ast b
-  | Liteeffects.Ast.Lambda (params, exp) ->
-      Format.fprintf fmt "Lambda (%a, %a)"
-        (Format.pp_print_list Format.pp_print_string)
-        params pp_ast exp
+  | Liteeffects.Ast.Lambda (params, return_type, exp) -> (
+      match return_type with
+      | None ->
+          Format.fprintf fmt "Lambda (%a => %a)" pp_lambda_params params pp_ast
+            exp
+      | Some ttype ->
+          Format.fprintf fmt "Lambda (%a: %a => %a)" pp_lambda_params params
+            pp_ttype ttype pp_ast exp)
   | Liteeffects.Ast.App (id, args) ->
       Format.fprintf fmt "App (%s, %a)" id (Format.pp_print_list pp_ast) args
   | Liteeffects.Ast.Perform (effect, action, args) ->
@@ -52,25 +64,36 @@ let test_const () =
     (Bound ("x", Int 1, Bound ("y", Int 2, Add (Ref "x", Ref "y"))))
     (parse "const x = 1; const y = 2; x + y");
   Alcotest.check ast_testable "parse lambda const binding"
-    (Bound ("f", Lambda ([], Int 1), Ref "f"))
+    (Bound ("f", Lambda ([], None, Int 1), Ref "f"))
     (parse "const f = () => { 1 }; f");
   Alcotest.check ast_testable "parse with no semicolon"
-    (Bound ("f", Lambda ([], Int 1), App ("f", [])))
+    (Bound ("f", Lambda ([], None, Int 1), App ("f", [])))
     (parse "const f = () => { 1 }\nf()")
 
 let test_lambda () =
   Alcotest.check ast_testable "parse function w no args"
-    (Lambda ([], Int 1))
+    (Lambda ([], None, Int 1))
     (parse "() => { 1 }");
   Alcotest.check ast_testable "parse function w one arg"
-    (Lambda ([ "a" ], Int 1))
-    (parse "(a) => { 1 }");
+    (Lambda ([ ("a", Liteeffects.Ast.TInt) ], None, Int 1))
+    (parse "(a: Int) => { 1 }");
+  Alcotest.check ast_testable "parse function w one arg and return type"
+    (Lambda ([ ("a", Liteeffects.Ast.TInt) ], Some TInt, Int 1))
+    (parse "(a: Int): Int => { 1 }");
   Alcotest.check ast_testable "parse function w multiple args"
-    (Lambda ([ "a"; "b"; "c" ], Int 1))
-    (parse "(a, b, c) => { 1 }");
+    (Lambda
+       ( [
+           ("a", Liteeffects.Ast.TInt);
+           ("b", Liteeffects.Ast.TInt);
+           ("c", Liteeffects.Ast.TInt);
+         ],
+         None,
+         Int 1 ))
+    (parse "(a: Int, b: Int, c: Int) => { 1 }");
   Alcotest.check ast_testable "parse function w const bindings"
     (Lambda
        ( [],
+         None,
          Bound
            ( "x",
              Int 5,
@@ -88,7 +111,7 @@ let test_lambda () =
         result\n\
         }");
   Alcotest.check ast_testable "parse lambda with no braces"
-    (Lambda ([], Int 1))
+    (Lambda ([], None, Int 1))
     (parse "() => 1 ")
 
 let test_app () =
@@ -99,7 +122,7 @@ let test_app () =
     (App ("withArgs", [ Int 2; Int 3 ]))
     (parse "withArgs(2, 3)");
   Alcotest.check ast_testable "parse lambda with application"
-    (Lambda ([], Add (Int 1, App ("withArgs", [ Int 2 ]))))
+    (Lambda ([], None, Add (Int 1, App ("withArgs", [ Int 2 ]))))
     (parse "() => { 1 + withArgs(2) }")
 
 let test_perform () =
@@ -121,12 +144,14 @@ let test_handle () =
        ( App ("effectfulComputation", [ Int 1 ]),
          "Math",
          [
-           ("pi", Lambda ([], Int 1));
-           ("sin", Lambda ([ "a" ], Add (Ref "a", Int 1)));
+           ("pi", Lambda ([], None, Int 1));
+           ( "sin",
+             Lambda ([ ("a", Liteeffects.Ast.TInt) ], None, Add (Ref "a", Int 1))
+           );
          ] ))
     (parse
-       "handle effectfulComputation(1) with Math { pi: () => { 1 }, sin: (a) \
-        => { a + 1 } }")
+       "handle effectfulComputation(1) with Math { pi: () => { 1 }, sin: (a: \
+        Int) => { a + 1 } }")
 
 let () =
   let open Alcotest in

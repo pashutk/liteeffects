@@ -2,8 +2,11 @@ let rec ltts = function
   | Ast.Int _i -> "int"
   | Ast.Add (_a, _b) -> "add"
   | Ast.Bound (id, _value, _exp) -> "const " ^ id
-  | Ast.Lambda (params, exp) ->
-      "lambda (" ^ String.concat ", " params ^ ") => " ^ ltts exp
+  | Ast.Lambda (params, _typ, exp) ->
+      "lambda ("
+      ^ String.concat ", "
+          (List.map (fun x -> match x with name, _ttype -> name) params)
+      ^ ") => " ^ ltts exp
   | Ast.Ref name -> "ref " ^ name
   | Ast.Mult (left, right) -> "mult " ^ ltts left ^ " * " ^ ltts right
   | Ast.App (id, _args) -> "app " ^ id

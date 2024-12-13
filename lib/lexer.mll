@@ -16,6 +16,7 @@ rule token = parse
     | "handle" { HANDLE }
     | "with" { WITH }
     | ":" { COLON }
+    | "Int" { TINT }
     | ";" { SEMICOLON }
     | "+" { PLUS }
     | "=" { EQUALS }

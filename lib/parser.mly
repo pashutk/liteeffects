@@ -19,6 +19,7 @@
 %token HANDLE
 %token WITH
 %token COLON
+%token TINT
 
 %left PLUS
 %nonassoc UMINUS
@@ -29,7 +30,17 @@
 
 main: e = expr EOF { e }
 
-lambda: LPAREN params = separated_list(COMMA, ID) RPAREN ARROW LBRACE? e = expr RBRACE? { Lambda (params, e) }
+type_exp: TINT { TInt }
+
+lambda_param: id = ID COLON ttype = type_exp { (id, ttype) }
+
+lambda_params: LPAREN params = separated_list(COMMA, lambda_param) RPAREN { params }
+
+lambda_body: LBRACE? body = expr RBRACE? { body }
+
+lambda:
+| params = lambda_params COLON ttype = type_exp ARROW body = lambda_body { Lambda (params, Some ttype, body) }
+| params = lambda_params ARROW body = lambda_body { Lambda (params, None, body) }
 
 app: id = ID LPAREN args = separated_list(COMMA, expr) RPAREN { App (id, args) }
 

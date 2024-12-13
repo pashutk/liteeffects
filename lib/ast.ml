@@ -1,7 +1,9 @@
+type typ = TInt
+
 type exp =
   | Int of int
   | Add of exp * exp
-  | Lambda of string list * exp
+  | Lambda of (string * typ) list * typ option * exp
   (* const name = exp; exp *)
   | Bound of string * exp * exp
   | Ref of string
