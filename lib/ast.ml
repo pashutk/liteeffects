@@ -1,4 +1,4 @@
-type typ = TInt
+type typ = TInt | TLambda of typ list * typ
 
 type exp =
   | Int of int

@@ -30,7 +30,9 @@
 
 main: e = expr EOF { e }
 
-type_exp: TINT { TInt }
+type_exp:
+| TINT { TInt }
+| LPAREN params = separated_list(COMMA, type_exp) RPAREN ARROW result = type_exp { TLambda (params, result) }
 
 lambda_param: id = ID COLON ttype = type_exp { (id, ttype) }
 

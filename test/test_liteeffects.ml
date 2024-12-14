@@ -3,10 +3,15 @@ open Liteeffects.Cli
 let pp_pair pp_first pp_second fmt (first, second) =
   Format.fprintf fmt "(%a, %a)" pp_first first pp_second second
 
-let pp_ttype fmt = function Liteeffects.Ast.TInt -> Format.fprintf fmt "Int"
+let rec pp_ttype fmt = function
+  | Liteeffects.Ast.TInt -> Format.fprintf fmt "Int"
+  | Liteeffects.Ast.TLambda (params, result) ->
+      Format.fprintf fmt "(%a) => %a"
+        (Format.pp_print_list pp_ttype)
+        params pp_ttype result
 
 let pp_lambda_param fmt (name, ttype) =
-  Format.fprintf fmt "%s, %a" name pp_ttype ttype
+  Format.fprintf fmt "%s: %a" name pp_ttype ttype
 
 let pp_lambda_params fmt params =
   Format.fprintf fmt "(%a)" (Format.pp_print_list pp_lambda_param) params
@@ -80,6 +85,16 @@ let test_lambda () =
   Alcotest.check ast_testable "parse function w one arg and return type"
     (Lambda ([ ("a", Liteeffects.Ast.TInt) ], Some TInt, Int 1))
     (parse "(a: Int): Int => { 1 }");
+  Alcotest.check ast_testable "parse function w lambda param"
+    (Lambda
+       ( [
+           ( "f",
+             Liteeffects.Ast.TLambda
+               ([ Liteeffects.Ast.TInt ], Liteeffects.Ast.TInt) );
+         ],
+         Some TInt,
+         Int 1 ))
+    (parse "(f: (Int) => Int): Int => { 1 }");
   Alcotest.check ast_testable "parse function w multiple args"
     (Lambda
        ( [
