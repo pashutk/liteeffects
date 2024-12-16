@@ -49,6 +49,19 @@ let rec pp_ast fmt = function
         actions
 
 let ast_testable = Alcotest.testable pp_ast ( = )
+
+let pp_type_error fmt = function
+  | Liteeffects.Typecheck.Expected typ ->
+      Format.fprintf fmt "Expected %a" pp_ttype typ
+  | Liteeffects.Typecheck.LambdaParamTypeMismatch ->
+      Format.fprintf fmt "LambdaParamTypeMismatch"
+  | Liteeffects.Typecheck.LambdaParamsCountMismatch ->
+      Format.fprintf fmt "LambdaParamsCountMismatch"
+  | Liteeffects.Typecheck.LambdaReturnTypeMismatch ->
+      Format.fprintf fmt "LambdaReturnTypeMismatch"
+  | Liteeffects.Typecheck.Unknown -> Format.fprintf fmt "Unknown"
+
+let typecheck_error_testable = Alcotest.testable pp_type_error ( = )
 let test_int () = Alcotest.check ast_testable "parse '1'" (Int 1) (parse "1")
 
 let test_add () =
@@ -168,6 +181,16 @@ let test_handle () =
        "handle effectfulComputation(1) with Math { pi: () => { 1 }, sin: (a: \
         Int) => { a + 1 } }")
 
+let test_typecheck_basic () =
+  Alcotest.(check (result unit typecheck_error_testable))
+    "passes int typecheck" (Ok ())
+    (Liteeffects.Typecheck.check (Liteeffects.Ast.Int 1) Liteeffects.Ast.TInt);
+  Alcotest.(check (result unit typecheck_error_testable))
+    "fails int typecheck" (Error (Expected Liteeffects.Ast.TInt))
+    (Liteeffects.Typecheck.check
+       (Liteeffects.Ast.Lambda ([], None, Int 1))
+       Liteeffects.Ast.TInt)
+
 let () =
   let open Alcotest in
   run "Parser"
@@ -184,4 +207,5 @@ let () =
           test_case "Effect" `Quick test_effect;
           test_case "Handle" `Quick test_handle;
         ] );
+      ("typecheck", [ test_case "Basic" `Quick test_typecheck_basic ]);
     ]
