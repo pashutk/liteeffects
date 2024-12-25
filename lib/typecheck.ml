@@ -7,7 +7,12 @@ type type_error =
   | LambdaParamTypeMismatch
   | Unknown
 
-let rec check (term : exp) (expected : Ast.typ) : (unit, type_error) Result.t =
+module StringMap = Map.Make (String)
+
+type env_t = Ast.typ StringMap.t
+
+let rec check (term : exp) (expected : Ast.typ) (env : env_t) :
+    (unit, type_error) Result.t =
   match term with
   | Int _ -> if expected != TInt then Error (Expected TInt) else Ok ()
   | Lambda (params, Some return_type, _result) -> (
@@ -25,11 +30,12 @@ let rec check (term : exp) (expected : Ast.typ) : (unit, type_error) Result.t =
           else Ok ()
       | _ -> Error (Expected expected))
   | Lambda (params, None, result) ->
-      check (Lambda (params, Some (synthesize result), result)) expected
+      check (Lambda (params, Some (synthesize result), result)) expected env
   | Add (left, right) ->
       if expected != TInt then Error (Expected TInt)
-      else Result.bind (check left TInt) (fun () -> check right TInt)
-  | Bound (_name, _type, _value, _next) -> Error Unknown
+      else Result.bind (check left TInt env) (fun () -> check right TInt env)
+  | Bound (_name, None, value, next) -> check value (synthesize next) env
+  | Bound (_name, Some _typ, _value, _next) -> Error Unknown
   | Ref _name -> Error Unknown
   | Mult (_left, _right) -> Error Unknown
   | App (_name, _args) -> Error Unknown

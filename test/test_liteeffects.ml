@@ -191,17 +191,19 @@ let test_handle () =
 let test_typecheck_basic () =
   Alcotest.(check (result unit typecheck_error_testable))
     "passes int typecheck" (Ok ())
-    (Liteeffects.Typecheck.check (Liteeffects.Ast.Int 1) Liteeffects.Ast.TInt);
+    (Liteeffects.Typecheck.check (Liteeffects.Ast.Int 1) Liteeffects.Ast.TInt
+       Liteeffects.Typecheck.StringMap.empty);
   Alcotest.(check (result unit typecheck_error_testable))
     "fails int typecheck" (Error (Expected Liteeffects.Ast.TInt))
     (Liteeffects.Typecheck.check
        (Liteeffects.Ast.Lambda ([], None, Int 1))
-       Liteeffects.Ast.TInt)
+       Liteeffects.Ast.TInt Liteeffects.Typecheck.StringMap.empty)
 (* Alcotest.(check (result unit typecheck_error_testable))
-   "checks simple program" (Error (Expected Liteeffects.Ast.TInt))
+   "checks simple program" (Ok ())
    (Liteeffects.Typecheck.check
       (Liteeffects.Ast.Bound
          ( "main",
+           None,
            Liteeffects.Ast.Lambda ([], None, Int 1),
            Liteeffects.Ast.App ("main", []) ))
       Liteeffects.Ast.TInt) *)
