@@ -1,7 +1,7 @@
 let rec ltts = function
   | Ast.Int _i -> "int"
   | Ast.Add (_a, _b) -> "add"
-  | Ast.Bound (id, _value, _exp) -> "const " ^ id
+  | Ast.Bound (id, _typ, _value, _exp) -> "const " ^ id
   | Ast.Lambda (params, _typ, exp) ->
       "lambda ("
       ^ String.concat ", "

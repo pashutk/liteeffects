@@ -37,8 +37,11 @@ let rec pp_ast fmt = function
       Format.fprintf fmt "Perform (%s, %s, %a)" effect action
         (Format.pp_print_list pp_ast)
         args
-  | Liteeffects.Ast.Bound (name, value, exp) ->
+  | Liteeffects.Ast.Bound (name, None, value, exp) ->
       Format.fprintf fmt "Bound (%s, %a, %a)" name pp_ast value pp_ast exp
+  | Liteeffects.Ast.Bound (name, Some typ, value, exp) ->
+      Format.fprintf fmt "Bound (%s of type %a: %a, %a)" name pp_ttype typ
+        pp_ast value pp_ast exp
   | Liteeffects.Ast.Effect (name, actions) ->
       Format.fprintf fmt "Effect (%s, %a)" name
         (Format.pp_print_list Format.pp_print_string)
@@ -76,16 +79,16 @@ let test_mult () =
 
 let test_const () =
   Alcotest.check ast_testable "parse const binding"
-    (Bound ("x", Int 1, Ref "x"))
+    (Bound ("x", None, Int 1, Ref "x"))
     (parse "const x = 1; x");
   Alcotest.check ast_testable "parse multiple const bindings"
-    (Bound ("x", Int 1, Bound ("y", Int 2, Add (Ref "x", Ref "y"))))
+    (Bound ("x", None, Int 1, Bound ("y", None, Int 2, Add (Ref "x", Ref "y"))))
     (parse "const x = 1; const y = 2; x + y");
   Alcotest.check ast_testable "parse lambda const binding"
-    (Bound ("f", Lambda ([], None, Int 1), Ref "f"))
+    (Bound ("f", None, Lambda ([], None, Int 1), Ref "f"))
     (parse "const f = () => { 1 }; f");
   Alcotest.check ast_testable "parse with no semicolon"
-    (Bound ("f", Lambda ([], None, Int 1), App ("f", [])))
+    (Bound ("f", None, Lambda ([], None, Int 1), App ("f", [])))
     (parse "const f = () => { 1 }\nf()")
 
 let test_lambda () =
@@ -124,13 +127,17 @@ let test_lambda () =
          None,
          Bound
            ( "x",
+             None,
              Int 5,
              Bound
                ( "y",
+                 None,
                  Int 3,
                  Bound
-                   ("result", Add (Ref "x", Mult (Ref "y", Int 2)), Ref "result")
-               ) ) ))
+                   ( "result",
+                     None,
+                     Add (Ref "x", Mult (Ref "y", Int 2)),
+                     Ref "result" ) ) ) ))
     (parse
        "() => {\n\
         const x = 5;\n\
@@ -190,6 +197,14 @@ let test_typecheck_basic () =
     (Liteeffects.Typecheck.check
        (Liteeffects.Ast.Lambda ([], None, Int 1))
        Liteeffects.Ast.TInt)
+(* Alcotest.(check (result unit typecheck_error_testable))
+   "checks simple program" (Error (Expected Liteeffects.Ast.TInt))
+   (Liteeffects.Typecheck.check
+      (Liteeffects.Ast.Bound
+         ( "main",
+           Liteeffects.Ast.Lambda ([], None, Int 1),
+           Liteeffects.Ast.App ("main", []) ))
+      Liteeffects.Ast.TInt) *)
 
 let () =
   let open Alcotest in

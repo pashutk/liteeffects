@@ -5,7 +5,7 @@ type exp =
   | Add of exp * exp
   | Lambda of (string * typ) list * typ option * exp
   (* const name = exp; exp *)
-  | Bound of string * exp * exp
+  | Bound of string * typ option * exp * exp
   | Ref of string
   | Mult of exp * exp
   | App of string * exp list

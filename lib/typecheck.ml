@@ -29,7 +29,7 @@ let rec check (term : exp) (expected : Ast.typ) : (unit, type_error) Result.t =
   | Add (left, right) ->
       if expected != TInt then Error (Expected TInt)
       else Result.bind (check left TInt) (fun () -> check right TInt)
-  | Bound (_name, _value, _next) -> Error Unknown
+  | Bound (_name, _type, _value, _next) -> Error Unknown
   | Ref _name -> Error Unknown
   | Mult (_left, _right) -> Error Unknown
   | App (_name, _args) -> Error Unknown
