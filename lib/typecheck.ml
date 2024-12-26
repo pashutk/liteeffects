@@ -5,6 +5,11 @@ type type_error =
   | LambdaParamsCountMismatch
   | LambdaReturnTypeMismatch
   | LambdaParamTypeMismatch
+  | UndefinedFunction of string
+  | IsNotAFunction of string
+  | FunctionCallArgCountMismatch
+  | FunctionCallArgTypeMismatch
+  | FunctionApplicationReturnTypeMismatch
   | Unknown
 
 module StringMap = Map.Make (String)
@@ -38,7 +43,21 @@ let rec check (term : exp) (expected : Ast.typ) (env : env_t) :
   | Bound (_name, Some _typ, _value, _next) -> Error Unknown
   | Ref _name -> Error Unknown
   | Mult (_left, _right) -> Error Unknown
-  | App (_name, _args) -> Error Unknown
+  | App (name, args) -> (
+      match StringMap.find_opt name env with
+      | None -> Error (UndefinedFunction name)
+      | Some (Ast.TLambda (params, ret_typ)) ->
+          if List.length args != List.length params then
+            Error FunctionCallArgCountMismatch
+          else if
+            List.for_all2
+              (fun arg param -> Result.is_ok (check arg param env))
+              args params
+          then
+            if ret_typ = expected then Ok ()
+            else Error FunctionApplicationReturnTypeMismatch
+          else Error FunctionCallArgTypeMismatch
+      | Some _ -> Error (IsNotAFunction name))
   | Perform (_effect, _action, _args) -> Error Unknown
   | Effect (_name, _actions) -> Error Unknown
   | Handle (_exp, _effect, _actions) -> Error Unknown
