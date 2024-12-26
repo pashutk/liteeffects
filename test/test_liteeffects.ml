@@ -255,6 +255,13 @@ let test_typecheck_basic () =
      in
      Liteeffects.Typecheck.check
        (Liteeffects.Ast.App ("main", [ Int 1 ]))
+       Liteeffects.Ast.TInt env);
+  Alcotest.(check (result unit typecheck_error_testable))
+    "not a function application fails" (Error (IsNotAFunction "x"))
+    (let x_type = Liteeffects.Ast.TInt in
+     let env = Liteeffects.Typecheck.StringMap.(empty |> add "x" x_type) in
+     Liteeffects.Typecheck.check
+       (Liteeffects.Ast.App ("x", [ Int 1 ]))
        Liteeffects.Ast.TInt env)
 
 let () =
