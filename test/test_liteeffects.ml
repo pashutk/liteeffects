@@ -271,20 +271,20 @@ let test_typecheck_basic () =
      Liteeffects.Typecheck.check
        (Liteeffects.Ast.App ("x", [ Int 1 ]))
        Liteeffects.Ast.TInt env);
-  (* Alcotest.(check (result unit typecheck_error_testable))
-     "const binding w no type application typechecks" (Ok ())
-     (let f_type = Liteeffects.Ast.TLambda ([ TInt ], TInt) in
-      let env =
-        Liteeffects.Typecheck_utils.StringMap.(empty |> add "f" f_type)
-      in
-      Liteeffects.Typecheck.check
-        (* const x = 4; f(x) where f accepts int *)
-        (Liteeffects.Ast.Bound
-           ( "x",
-             None,
-             Int 4,
-             Liteeffects.Ast.App ("f", [ Liteeffects.Ast.Ref "x" ]) ))
-        Liteeffects.Ast.TInt env); *)
+  Alcotest.(check (result unit typecheck_error_testable))
+    "const binding w no type application typechecks" (Ok ())
+    (let f_type = Liteeffects.Ast.TLambda ([ TInt ], TInt) in
+     let env =
+       Liteeffects.Typecheck_utils.StringMap.(empty |> add "f" f_type)
+     in
+     Liteeffects.Typecheck.check
+       (* const x = 4; f(x) where f accepts int *)
+       (Liteeffects.Ast.Bound
+          ( "x",
+            None,
+            Int 4,
+            Liteeffects.Ast.App ("f", [ Liteeffects.Ast.Ref "x" ]) ))
+       Liteeffects.Ast.TInt env);
   Alcotest.(check (result unit typecheck_error_testable))
     "ref typechecks" (Ok ())
     (let x_type = Liteeffects.Ast.TInt in
@@ -302,36 +302,22 @@ let test_typecheck_basic () =
      in
      Liteeffects.Typecheck.check (Liteeffects.Ast.Ref "x")
        (Liteeffects.Ast.TLambda ([ TInt ], TInt))
-       env)
-(* Alcotest.(check (result unit typecheck_error_testable))
-   "ref application type mismatch typechecks" (Ok ())
-   (let f_type = Liteeffects.Ast.TLambda ([ TLambda ([], TInt) ], TInt) in
-    let env =
-      Liteeffects.Typecheck_utils.StringMap.(empty |> add "f" f_type)
-    in
-    Liteeffects.Typecheck.check
-      (* const x = 4; f(x) where f accepts lambda *)
-      (Liteeffects.Ast.Bound
-         ( "x",
-           None,
-           Int 4,
-           Liteeffects.Ast.App ("f", [ Liteeffects.Ast.Ref "x" ]) ))
-      Liteeffects.Ast.TInt env) *)
-(* Alcotest.(check (result unit typecheck_error_testable))
-   "const binding w no type application type mismatch fails"
-   (Error FunctionCallArgTypeMismatch)
-   (let f_type = Liteeffects.Ast.TLambda ([ TLambda ([], TInt) ], TInt) in
-    let env =
-      Liteeffects.Typecheck_utils.StringMap.(empty |> add "f" f_type)
-    in
-    Liteeffects.Typecheck.check
-      (* const x = 4; f(x) where f accepts lambda *)
-      (Liteeffects.Ast.Bound
-         ( "x",
-           None,
-           Int 4,
-           Liteeffects.Ast.App ("f", [ Liteeffects.Ast.Ref "x" ]) ))
-      Liteeffects.Ast.TInt env) *)
+       env);
+  Alcotest.(check (result unit typecheck_error_testable))
+    "ref application type mismatch fails" (Error FunctionCallArgTypeMismatch)
+    (* f: (() => Int) => Int *)
+    (let f_type = Liteeffects.Ast.TLambda ([ TLambda ([], TInt) ], TInt) in
+     let env =
+       Liteeffects.Typecheck_utils.StringMap.(empty |> add "f" f_type)
+     in
+     Liteeffects.Typecheck.check
+       (* const x = 4; f(x) *)
+       (Liteeffects.Ast.Bound
+          ( "x",
+            None,
+            Int 4,
+            Liteeffects.Ast.App ("f", [ Liteeffects.Ast.Ref "x" ]) ))
+       Liteeffects.Ast.TInt env)
 
 let () =
   let open Alcotest in
