@@ -317,6 +317,30 @@ let test_typecheck_basic () =
             None,
             Int 4,
             Liteeffects.Ast.App ("f", [ Liteeffects.Ast.Ref "x" ]) ))
+       Liteeffects.Ast.TInt env);
+  Alcotest.(check (result unit typecheck_error_testable))
+    "addition of ints typechecks" (Ok ())
+    (let env =
+       Liteeffects.Typecheck_utils.StringMap.(
+         empty |> add "a" Liteeffects.Ast.TInt)
+     in
+     Liteeffects.Typecheck.check
+       (* a + 1 where a: Int *)
+       (Liteeffects.Ast.Add (Ref "a", Int 1))
+       Liteeffects.Ast.TInt env);
+  Alcotest.(check (result unit typecheck_error_testable))
+    "int + lambda typecheck fails"
+    (Error
+       (Expected
+          ( Liteeffects.Ast.TInt,
+            Liteeffects.Ast.TLambda ([], Liteeffects.Ast.TInt) )))
+    (let env =
+       Liteeffects.Typecheck_utils.StringMap.(
+         empty |> add "a" (Liteeffects.Ast.TLambda ([], Liteeffects.Ast.TInt)))
+     in
+     Liteeffects.Typecheck.check
+       (* a + 1 where a: () => Int *)
+       (Liteeffects.Ast.Add (Ref "a", Int 1))
        Liteeffects.Ast.TInt env)
 
 let () =
