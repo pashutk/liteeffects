@@ -1,7 +1,9 @@
 open Ast
+open Typecheck_utils
 
 type type_error =
-  | Expected of Ast.typ
+  (* Expected A but got B *)
+  | Expected of Ast.typ * Ast.typ
   | LambdaParamsCountMismatch
   | LambdaReturnTypeMismatch
   | LambdaParamTypeMismatch
@@ -10,16 +12,14 @@ type type_error =
   | FunctionCallArgCountMismatch
   | FunctionCallArgTypeMismatch
   | FunctionApplicationReturnTypeMismatch
+  | UndefinedVariable of string
   | Unknown
-
-module StringMap = Map.Make (String)
-
-type env_t = Ast.typ StringMap.t
 
 let rec check (term : exp) (expected : Ast.typ) (env : env_t) :
     (unit, type_error) Result.t =
   match term with
-  | Int _ -> if expected != TInt then Error (Expected TInt) else Ok ()
+  | Int _ ->
+      if expected != TInt then Error (Expected (expected, TInt)) else Ok ()
   | Lambda (params, Some return_type, _result) -> (
       match expected with
       | TLambda (expected_params, expected_result) ->
@@ -33,15 +33,22 @@ let rec check (term : exp) (expected : Ast.typ) (env : env_t) :
           else if return_type != expected_result then
             Error LambdaReturnTypeMismatch
           else Ok ()
-      | _ -> Error (Expected expected))
+      | _ ->
+          Error
+            (Expected (expected, TLambda (List.map snd params, return_type))))
   | Lambda (params, None, result) ->
       check (Lambda (params, Some (synthesize result), result)) expected env
   | Add (left, right) ->
-      if expected != TInt then Error (Expected TInt)
+      if expected != TInt then Error (Expected (expected, TInt))
       else Result.bind (check left TInt env) (fun () -> check right TInt env)
-  | Bound (_name, None, value, next) -> check value (synthesize next) env
+  | Bound (name, None, value, next) ->
+      check next expected (StringMap.add name (synthesize value) env)
   | Bound (_name, Some _typ, _value, _next) -> Error Unknown
-  | Ref _name -> Error Unknown
+  | Ref name -> (
+      match StringMap.find_opt name env with
+      | None -> Error (UndefinedVariable name)
+      | Some typ when typ = expected -> Ok ()
+      | Some typ -> Error (Expected (expected, typ)))
   | Mult (_left, _right) -> Error Unknown
   | App (name, args) -> (
       match StringMap.find_opt name env with
