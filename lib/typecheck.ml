@@ -22,25 +22,25 @@ let rec check (term : exp) (expected : Ast.typ) (env : env_t) :
       if expected != TInt then Error (Expected (expected, TInt)) else Ok ()
   | Lambda (params, Some return_type, _result) -> (
       match expected with
-      | TLambda (expected_params, expected_result) ->
-          if List.length params != List.length expected_params then
-            Error LambdaParamsCountMismatch
-          else if
-            List.exists2
-              (fun (_name, typ) expected_typ -> typ != expected_typ)
-              params expected_params
-          then Error LambdaParamTypeMismatch
-          else if return_type != expected_result then
-            Error LambdaReturnTypeMismatch
-          else Ok ()
+      | TLambda (expected_params, _)
+        when List.length params != List.length expected_params ->
+          Error LambdaParamsCountMismatch
+      | TLambda (expected_params, _)
+        when List.exists2
+               (fun (_name, typ) expected_typ -> typ != expected_typ)
+               params expected_params ->
+          Error LambdaParamTypeMismatch
+      | TLambda (_, expected_result) when return_type != expected_result ->
+          Error LambdaReturnTypeMismatch
+      | TLambda (_, _) -> Ok ()
       | _ ->
           Error
             (Expected (expected, TLambda (List.map snd params, return_type))))
   | Lambda (params, None, result) ->
       check (Lambda (params, Some (synthesize result), result)) expected env
-  | Add (left, right) ->
-      if expected != TInt then Error (Expected (expected, TInt))
-      else Result.bind (check left TInt env) (fun () -> check right TInt env)
+  | Add (left, right) when expected == TInt ->
+      Result.bind (check left TInt env) (fun () -> check right TInt env)
+  | Add (_, _) -> Error (Expected (expected, TInt))
   | Bound (name, None, value, next) ->
       check next expected (StringMap.add name (synthesize value) env)
   | Bound (_name, Some _typ, _value, _next) -> Error Unknown
@@ -53,10 +53,11 @@ let rec check (term : exp) (expected : Ast.typ) (env : env_t) :
   | App (name, args) -> (
       match StringMap.find_opt name env with
       | None -> Error (UndefinedFunction name)
+      | Some (Ast.TLambda (params, _))
+        when List.length args != List.length params ->
+          Error FunctionCallArgCountMismatch
       | Some (Ast.TLambda (params, ret_typ)) ->
-          if List.length args != List.length params then
-            Error FunctionCallArgCountMismatch
-          else if
+          if
             List.for_all2
               (fun arg param -> Result.is_ok (check arg param env))
               args params
