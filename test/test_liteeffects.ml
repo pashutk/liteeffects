@@ -353,9 +353,6 @@ let test_interpret () =
   Alcotest.(check int)
     "interprets mult" 6
     (Liteeffects.Interpret.interpret_start (Mult (Int 3, Int 2)));
-  Alcotest.check_raises "interpreting addition of non deined ref fails"
-    (Failure "a is not defined") (fun () ->
-      ignore (Liteeffects.Interpret.interpret_start (Add (Ref "a", Int 2))));
   Alcotest.(check int)
     "addition of ref and int interprets" 5
     (Liteeffects.Interpret.interpret

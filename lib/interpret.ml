@@ -9,8 +9,6 @@ let rec interpret (ast : Ast.exp) (scope : scope) : Int.t =
   | Int value -> value
   | Add (left, right) -> interpret left scope + interpret right scope
   | Mult (left, right) -> interpret left scope * interpret right scope
-  | (Ref name | App (name, _)) when not (StringMap.mem name scope) ->
-      failwith (name ^ " is not defined")
   | Ref name -> interpret (StringMap.find name scope) scope
   | App (name, args) -> (
       let interpreted_args =
