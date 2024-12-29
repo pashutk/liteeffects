@@ -343,6 +343,46 @@ let test_typecheck_basic () =
        (Liteeffects.Ast.Add (Ref "a", Int 1))
        Liteeffects.Ast.TInt env)
 
+let test_interpret () =
+  Alcotest.(check int)
+    "interprets int" 1
+    (Liteeffects.Interpret.interpret_start (Int 1));
+  Alcotest.(check int)
+    "interprets add" 3
+    (Liteeffects.Interpret.interpret_start (Add (Int 1, Int 2)));
+  Alcotest.(check int)
+    "interprets mult" 6
+    (Liteeffects.Interpret.interpret_start (Mult (Int 3, Int 2)));
+  Alcotest.check_raises "interpreting addition of non deined ref fails"
+    (Failure "a is not defined") (fun () ->
+      ignore (Liteeffects.Interpret.interpret_start (Add (Ref "a", Int 2))));
+  Alcotest.(check int)
+    "addition of ref and int interprets" 5
+    (Liteeffects.Interpret.interpret
+       (Add (Ref "a", Int 2))
+       (let a = Liteeffects.Ast.Int 3 in
+        Liteeffects.Interpret.StringMap.(empty |> add "a" a)));
+  Alcotest.(check int)
+    "addition of application and int interprets" 6
+    (Liteeffects.Interpret.interpret
+       (* f(1) + 2 *)
+       (Add (App ("f", [ Int 1 ]), Int 2))
+       (let f =
+          (* a => a + 3 *)
+          Liteeffects.Ast.Lambda
+            ([ ("a", Liteeffects.Ast.TInt) ], None, Add (Ref "a", Int 3))
+        in
+        Liteeffects.Interpret.StringMap.(empty |> add "f" f)));
+  Alcotest.check_raises "interpreting addition of anything else fails"
+    (Failure "Not implemented or the ast hasn't been typechecked") (fun () ->
+      ignore
+        (Liteeffects.Interpret.interpret_start
+           (Add (Lambda ([], None, Int 1), Int 2))));
+  Alcotest.(check int)
+    "binding use in addition interprets" 3
+    (Liteeffects.Interpret.interpret_start
+       (Bound ("a", None, Int 1, Add (Ref "a", Int 2))))
+
 let () =
   let open Alcotest in
   run "Parser"
@@ -360,4 +400,5 @@ let () =
           test_case "Handle" `Quick test_handle;
         ] );
       ("typecheck", [ test_case "Basic" `Quick test_typecheck_basic ]);
+      ("interpret", [ test_case "Basic" `Quick test_interpret ]);
     ]
