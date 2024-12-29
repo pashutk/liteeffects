@@ -7,16 +7,8 @@ type scope = Ast.exp StringMap.t
 let rec interpret (ast : Ast.exp) (scope : scope) : Int.t =
   match ast with
   | Int value -> value
-  | Add (Int left, Int right) -> left + right
-  | Add (left, right) ->
-      let exp = Add (Int (interpret left scope), Int (interpret right scope)) in
-      interpret exp scope
-  | Mult (Int left, Int right) -> left * right
-  | Mult (left, right) ->
-      let exp =
-        Mult (Int (interpret left scope), Int (interpret right scope))
-      in
-      interpret exp scope
+  | Add (left, right) -> interpret left scope + interpret right scope
+  | Mult (left, right) -> interpret left scope * interpret right scope
   | (Ref name | App (name, _)) when not (StringMap.mem name scope) ->
       failwith (name ^ " is not defined")
   | Ref name -> interpret (StringMap.find name scope) scope
