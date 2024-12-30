@@ -11,16 +11,21 @@ let rec interpret (ast : Ast.exp) (scope : scope) : Int.t =
   | Mult (left, right) -> interpret left scope * interpret right scope
   | Ref name -> interpret (StringMap.find name scope) scope
   | App (name, args) -> (
-      let interpreted_args =
-        List.(args |> map (fun arg -> Int (interpret arg scope)))
-      in
-      let lambda = StringMap.find name scope in
-      match lambda with
+      let func = StringMap.find name scope in
+      match func with
       | Lambda (params, _return_type, body) ->
           let bindings =
             List.map2
-              (fun (name, _typ) value -> (name, value))
-              params interpreted_args
+              (fun (name, _typ) value ->
+                ( name,
+                  match value with
+                  (* Don't interpret lambda immediately *)
+                  | Lambda (_, _, _) -> value
+                  (* Refs original value added with a new name *)
+                  | Ref ref_name -> StringMap.find ref_name scope
+                  (* Everything else evaluates *)
+                  | _ -> Int (interpret value scope) ))
+              params args
           in
           let lambda_scope = StringMap.add_seq (List.to_seq bindings) scope in
           interpret body lambda_scope

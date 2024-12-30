@@ -392,7 +392,53 @@ let test_interpret () =
           ( "f",
             None,
             Lambda ([ ("a", TInt) ], None, Ref "a"),
-            App ("f", [ Int 1 ]) )))
+            App ("f", [ Int 1 ]) )));
+  Alcotest.(check int)
+    "application of lambda interprets" 2
+    (Liteeffects.Interpret.interpret_start
+       (* const app = (f, value) => f(value); app((a) => a + 1, 1) *)
+       ((* (Int) => Int *)
+        let f_param_type =
+          Liteeffects.Ast.TLambda
+            ([ Liteeffects.Ast.TInt ], Liteeffects.Ast.TInt)
+        in
+        (* (f: f_param_type, value: Int) => f(value) *)
+        let app =
+          Liteeffects.Ast.Lambda
+            ( [ ("f", f_param_type); ("value", Liteeffects.Ast.TInt) ],
+              None,
+              App ("f", [ Ref "value" ]) )
+        in
+        let inc =
+          Liteeffects.Ast.Lambda
+            ([ ("a", Liteeffects.Ast.TInt) ], None, Add (Ref "a", Int 1))
+        in
+        let result =
+          Liteeffects.Ast.App ("app", [ inc; Liteeffects.Ast.Int 1 ])
+        in
+        Bound ("app", None, app, result)));
+  Alcotest.(check int)
+    "application of bound lambda interprets" 2
+    (Liteeffects.Interpret.interpret_start
+       (* const inc = (a) => a + 1; const app = (f, value) => f(value); app(inc, 1) *)
+       (let inc =
+          Liteeffects.Ast.Lambda
+            ([ ("a", Liteeffects.Ast.TInt) ], None, Add (Ref "a", Int 1))
+        in
+        let f_param_type =
+          Liteeffects.Ast.TLambda
+            ([ Liteeffects.Ast.TInt ], Liteeffects.Ast.TInt)
+        in
+        let app =
+          Liteeffects.Ast.Lambda
+            ( [ ("f", f_param_type); ("value", Liteeffects.Ast.TInt) ],
+              None,
+              App ("f", [ Ref "value" ]) )
+        in
+        let result =
+          Liteeffects.Ast.App ("app", [ Ref "inc"; Liteeffects.Ast.Int 1 ])
+        in
+        Bound ("inc", None, inc, Bound ("app", None, app, result))))
 
 let () =
   let open Alcotest in
