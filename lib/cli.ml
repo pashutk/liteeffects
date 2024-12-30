@@ -38,5 +38,5 @@ let main () =
   let ast = lexbuf |> Parser.main Lexer.token in
   let typecheck_result = Typecheck.check_main ast in
   match typecheck_result with
-  | Ok _ -> ast |> Interpret.interpret_start |> Int.to_string |> print_endline
+  | Ok _ -> ast |> Interpret.interpret_empty |> Int.to_string |> print_endline
   | Error err -> Typecheck_utils.pp_type_error Format.std_formatter err

@@ -38,4 +38,4 @@ let rec interpret (ast : Ast.exp) (scope : scope) : Int.t =
           interpret next StringMap.(scope |> add name (Int value)))
   | _ -> failwith "Not implemented or the ast hasn't been typechecked"
 
-let interpret_start ast = interpret ast StringMap.empty
+let interpret_empty ast = interpret ast StringMap.empty
