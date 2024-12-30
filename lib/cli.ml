@@ -35,8 +35,6 @@ let main () =
        };\n\
        addAndLet()"
   in
-  (* let lexbuf = Lexing.from_string "const x = 1; x" in *)
-  (* print_endline (lbts (Lexer.token lexbuf)) *)
-  let b = Parser.main Lexer.token lexbuf in
 
-  print_endline (ltts b)
+  lexbuf |> Parser.main Lexer.token |> Interpret.interpret_start
+  |> Int.to_string |> print_endline
