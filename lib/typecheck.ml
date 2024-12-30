@@ -1,20 +1,6 @@
 open Ast
 open Typecheck_utils
 
-type type_error =
-  (* Expected A but got B *)
-  | Expected of Ast.typ * Ast.typ
-  | LambdaParamsCountMismatch
-  | LambdaReturnTypeMismatch
-  | LambdaParamTypeMismatch
-  | UndefinedFunction of string
-  | IsNotAFunction of string
-  | FunctionCallArgCountMismatch
-  | FunctionCallArgTypeMismatch
-  | FunctionApplicationReturnTypeMismatch
-  | UndefinedVariable of string
-  | Unknown
-
 let rec check (term : exp) (expected : Ast.typ) (env : env_t) :
     (unit, type_error) Result.t =
   match term with
@@ -72,3 +58,6 @@ let rec check (term : exp) (expected : Ast.typ) (env : env_t) :
 
 and synthesize (term : exp) =
   match term with Int _ -> TInt | Add (_, _) -> TInt | _ -> TInt
+
+let check_empty ast expected = check ast expected StringMap.empty
+let check_main ast = check ast TInt StringMap.empty
