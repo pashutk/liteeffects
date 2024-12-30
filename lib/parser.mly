@@ -22,6 +22,7 @@
 %token TINT
 
 %left PLUS
+%left ASTERISK
 %nonassoc UMINUS
 
 %start<Ast.exp> main

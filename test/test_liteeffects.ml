@@ -87,7 +87,13 @@ let test_add () =
 let test_mult () =
   Alcotest.check ast_testable "parse '1 * 2'"
     (Mult (Int 1, Int 2))
-    (parse "1 * 2")
+    (parse "1 * 2");
+  Alcotest.check ast_testable "parse '1 + 1 * 2'"
+    (Add (Int 1, Mult (Int 1, Int 2)))
+    (parse "1 + 1 * 2");
+  Alcotest.check ast_testable "parse '2 * 2 + 2'"
+    (Add (Mult (Int 2, Int 2), Int 2))
+    (parse "2 * 2 + 2")
 
 let test_const () =
   Alcotest.check ast_testable "parse const binding"
