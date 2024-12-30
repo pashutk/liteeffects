@@ -384,7 +384,15 @@ let test_interpret () =
   Alcotest.(check int)
     "binding use in addition interprets" 3
     (Liteeffects.Interpret.interpret_start
-       (Bound ("a", None, Int 1, Add (Ref "a", Int 2))))
+       (Bound ("a", None, Int 1, Add (Ref "a", Int 2))));
+  Alcotest.(check int)
+    "lambda binding interprets" 1
+    (Liteeffects.Interpret.interpret_start
+       (Bound
+          ( "f",
+            None,
+            Lambda ([ ("a", TInt) ], None, Ref "a"),
+            App ("f", [ Int 1 ]) )))
 
 let () =
   let open Alcotest in

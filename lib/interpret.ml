@@ -25,9 +25,12 @@ let rec interpret (ast : Ast.exp) (scope : scope) : Int.t =
           let lambda_scope = StringMap.add_seq (List.to_seq bindings) scope in
           interpret body lambda_scope
       | _ -> failwith (name ^ " is not a function"))
-  | Bound (name, _typ, exp, next) ->
-      let value = interpret exp scope in
-      interpret next StringMap.(scope |> add name (Int value))
+  | Bound (name, _typ, exp, next) -> (
+      match exp with
+      | Lambda (_, _, _) -> interpret next StringMap.(scope |> add name exp)
+      | _ ->
+          let value = interpret exp scope in
+          interpret next StringMap.(scope |> add name (Int value)))
   | _ -> failwith "Not implemented or the ast hasn't been typechecked"
 
 let interpret_start ast = interpret ast StringMap.empty
