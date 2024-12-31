@@ -62,6 +62,7 @@ and synthesize (term : exp) =
   | Add (_, _) -> TInt
   | Lambda (params, None, body) ->
       TLambda (params |> List.map snd, synthesize body)
+  | Bound (_name, None, exp, _next) -> synthesize exp
   | _ ->
       failwith
         (Format.asprintf "Failed to synthesize type for the term %a"

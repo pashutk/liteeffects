@@ -260,6 +260,11 @@ let test_typecheck_basic () =
     (let nested_lambda = Liteeffects.Ast.Lambda ([], None, Int 1) in
      check_empty
        (Lambda ([], None, nested_lambda))
+       (Liteeffects.Ast.TLambda ([], TInt)));
+  Alcotest.(check (result unit typecheck_error_testable))
+    "bound lambda type synthesizes" (Ok ())
+    (check_empty
+       (Bound ("f", None, Lambda ([], None, Int 1), Ref "f"))
        (Liteeffects.Ast.TLambda ([], TInt)))
 
 let test_interpret () =
