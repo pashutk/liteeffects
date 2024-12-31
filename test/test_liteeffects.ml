@@ -248,7 +248,19 @@ let test_typecheck_basic () =
      check
        (* a + 1 where a: () => Int *)
        (Liteeffects.Ast.Add (Ref "a", Int 1))
-       Liteeffects.Ast.TInt env)
+       Liteeffects.Ast.TInt env);
+  Alcotest.(check (result unit typecheck_error_testable))
+    "lambda type synthesizes" (Ok ())
+    (check_empty
+       (Lambda ([], None, Liteeffects.Ast.Int 1))
+       (Liteeffects.Ast.TLambda ([], TInt)));
+  Alcotest.(check (result unit typecheck_error_testable))
+    "lambda type synthesis fails"
+    (Error Liteeffects.Typecheck_utils.LambdaReturnTypeMismatch)
+    (let nested_lambda = Liteeffects.Ast.Lambda ([], None, Int 1) in
+     check_empty
+       (Lambda ([], None, nested_lambda))
+       (Liteeffects.Ast.TLambda ([], TInt)))
 
 let test_interpret () =
   Alcotest.(check int)

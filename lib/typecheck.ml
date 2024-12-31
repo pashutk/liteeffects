@@ -57,7 +57,15 @@ let rec check (term : exp) (expected : Ast.typ) (env : env_t) :
   | Handle (_exp, _effect, _actions) -> Error Unknown
 
 and synthesize (term : exp) =
-  match term with Int _ -> TInt | Add (_, _) -> TInt | _ -> TInt
+  match term with
+  | Int _ -> TInt
+  | Add (_, _) -> TInt
+  | Lambda (params, None, body) ->
+      TLambda (params |> List.map snd, synthesize body)
+  | _ ->
+      failwith
+        (Format.asprintf "Failed to synthesize type for the term %a"
+           Ast_utils.pp_ast term)
 
 let check_empty ast expected = check ast expected StringMap.empty
 let check_main ast = check ast TInt StringMap.empty
