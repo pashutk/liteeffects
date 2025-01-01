@@ -1,28 +1,3 @@
-let rec ltts = function
-  | Ast.Int _i -> "int"
-  | Ast.Add (_a, _b) -> "add"
-  | Ast.Bound (id, _typ, _value, _exp) -> "const " ^ id
-  | Ast.Lambda (params, _typ, exp) ->
-      "lambda ("
-      ^ String.concat ", "
-          (List.map (fun x -> match x with name, _ttype -> name) params)
-      ^ ") => " ^ ltts exp
-  | Ast.Ref name -> "ref " ^ name
-  | Ast.Mult (left, right) -> "mult " ^ ltts left ^ " * " ^ ltts right
-  | Ast.App (id, _args) -> "app " ^ id
-  | Ast.Perform (effect, _action, _exp) -> "perform " ^ effect
-  | Ast.Effect (name, _actions) -> "effect " ^ name
-  | Ast.Handle (_exp, effect, _actions) -> "handle " ^ effect
-
-let lbts = function
-  | Parser.ARROW -> "arrow"
-  | Parser.ID name -> "id " ^ name
-  | _ -> "other"
-
-let parse s =
-  let lexbuf = Lexing.from_string s in
-  Parser.main Lexer.token lexbuf
-
 let main () =
   (* let lexbuf = Lexing.from_channel stdin in *)
   let lexbuf =
