@@ -21,7 +21,7 @@
  (name liteeffects)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml)
+ (depends ocaml dune alcotest cmdliner menhir)
  (tags
   ("add topics" "to describe" your project)))
 
