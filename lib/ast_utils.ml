@@ -38,10 +38,10 @@ let rec pp_ast fmt = function
   | Ast.Bound (name, Some typ, value, exp) ->
       Format.fprintf fmt "Bound (%s of type %a: %a, %a)" name pp_ttype typ
         pp_ast value pp_ast exp
-  | Ast.Effect (name, actions) ->
-      Format.fprintf fmt "Effect (%s, %a)" name
+  | Ast.Effect (name, actions, next) ->
+      Format.fprintf fmt "Effect (%s, %a, %a)" name
         (Format.pp_print_list Format.pp_print_string)
-        actions
+        actions pp_ast next
   | Ast.Handle (exp, effect, actions) ->
       Format.fprintf fmt "Handle (%a, %s, %a)" pp_ast exp effect
         (Format.pp_print_list (pp_pair Format.pp_print_string pp_ast))

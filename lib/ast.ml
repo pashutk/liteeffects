@@ -10,5 +10,5 @@ type exp =
   | Mult of exp * exp
   | App of string * exp list
   | Perform of string * string * exp list
-  | Effect of string * string list
+  | Effect of string * string list * exp
   | Handle of exp * string * (string * exp) list

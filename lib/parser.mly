@@ -54,7 +54,7 @@ expr:
 | CONST id = ID COLON ttype = type_exp EQUALS value = expr SEMICOLON? e = expr { Bound (id, Some ttype, value, e) }
 | CONST id = ID EQUALS value = expr SEMICOLON? e = expr { Bound (id, None, value, e) }
 | PERFORM effect = ID DOT action = ID LPAREN args = separated_list(COMMA, expr) RPAREN { Perform (effect, action, args) }
-| EFFECT name = ID LBRACE actions = separated_list(COMMA, ID) RBRACE { Effect (name, actions) }
+| EFFECT name = ID LBRACE actions = separated_list(COMMA, ID) RBRACE SEMICOLON? next = expr { Effect (name, actions, next) }
 | HANDLE e = expr WITH effect = ID LBRACE actions = separated_list(COMMA, handle_field) RBRACE { Handle (e, effect, actions) }
 | expr PLUS expr { Add ($1, $3) }
 | expr ASTERISK expr { Mult ($1, $3) }

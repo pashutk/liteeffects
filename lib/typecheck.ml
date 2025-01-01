@@ -53,7 +53,7 @@ let rec check (term : exp) (expected : Ast.typ) (env : env_t) :
           else Error FunctionCallArgTypeMismatch
       | Some _ -> Error (IsNotAFunction name))
   | Perform (_effect, _action, _args) -> Error Unknown
-  | Effect (_name, _actions) -> Error Unknown
+  | Effect (_name, _actions, _next) -> Error Unknown
   | Handle (_exp, _effect, _actions) -> Error Unknown
 
 and synthesize (term : exp) =

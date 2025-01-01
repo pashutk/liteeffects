@@ -10,8 +10,11 @@ homepage: "https://github.com/pashutk/liteeffects"
 doc: "https://url/to/documentation"
 bug-reports: "https://github.com/pashutk/liteeffects/issues"
 depends: [
-  "dune" {>= "3.17"}
   "ocaml"
+  "dune" {>= "3.17"}
+  "alcotest"
+  "cmdliner"
+  "menhir"
   "odoc" {with-doc}
 ]
 build: [
