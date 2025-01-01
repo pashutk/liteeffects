@@ -21,7 +21,13 @@
  (name liteeffects)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune alcotest cmdliner menhir)
+ (depends
+  ocaml
+  dune
+  (alcotest :with-test)
+  (cmdliner
+   (>= 1.3.0))
+  menhir)
  (tags
   ("add topics" "to describe" your project)))
 
