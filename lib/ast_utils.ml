@@ -46,3 +46,7 @@ let rec pp_ast fmt = function
       Format.fprintf fmt "Handle (%a, %s, %a)" pp_ast exp effect
         (Format.pp_print_list (pp_pair Format.pp_print_string pp_ast))
         actions
+
+let parse_string s =
+  let lexbuf = Lexing.from_string s in
+  Parser.main Lexer.token lexbuf
