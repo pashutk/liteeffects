@@ -1,4 +1,3 @@
-open Alcotest
 open Test_utils
 open Liteeffects.Ast_utils
 
@@ -40,30 +39,16 @@ let test_lambda () =
     (Lambda ([], None, Int 1))
     (parse_string "() => { 1 }");
   Alcotest.check ast_testable "parse function w one arg"
-    (Lambda ([ ("a", Liteeffects.Ast.TInt) ], None, Int 1))
+    (Lambda ([ ("a", TInt) ], None, Int 1))
     (parse_string "(a: Int) => { 1 }");
   Alcotest.check ast_testable "parse function w one arg and return type"
-    (Lambda ([ ("a", Liteeffects.Ast.TInt) ], Some TInt, Int 1))
+    (Lambda ([ ("a", TInt) ], Some TInt, Int 1))
     (parse_string "(a: Int): Int => { 1 }");
   Alcotest.check ast_testable "parse function w lambda param"
-    (Lambda
-       ( [
-           ( "f",
-             Liteeffects.Ast.TLambda
-               ([ Liteeffects.Ast.TInt ], Liteeffects.Ast.TInt) );
-         ],
-         Some TInt,
-         Int 1 ))
+    (Lambda ([ ("f", TLambda ([ TInt ], TInt)) ], Some TInt, Int 1))
     (parse_string "(f: (Int) => Int): Int => { 1 }");
   Alcotest.check ast_testable "parse function w multiple args"
-    (Lambda
-       ( [
-           ("a", Liteeffects.Ast.TInt);
-           ("b", Liteeffects.Ast.TInt);
-           ("c", Liteeffects.Ast.TInt);
-         ],
-         None,
-         Int 1 ))
+    (Lambda ([ ("a", TInt); ("b", TInt); ("c", TInt) ], None, Int 1))
     (parse_string "(a: Int, b: Int, c: Int) => { 1 }");
   Alcotest.check ast_testable "parse function w const bindings"
     (Lambda
@@ -124,9 +109,7 @@ let test_handle () =
          "Math",
          [
            ("pi", Lambda ([], None, Int 1));
-           ( "sin",
-             Lambda ([ ("a", Liteeffects.Ast.TInt) ], None, Add (Ref "a", Int 1))
-           );
+           ("sin", Lambda ([ ("a", TInt) ], None, Add (Ref "a", Int 1)));
          ] ))
     (parse_string
        "handle effectfulComputation(1) with Math { pi: () => { 1 }, sin: (a: \
@@ -134,13 +117,13 @@ let test_handle () =
 
 let test_suite =
   [
-    test_case "Int" `Quick test_int;
-    test_case "Add" `Quick test_add;
-    test_case "Mult" `Quick test_mult;
-    test_case "Const" `Quick test_const;
-    test_case "Lambda" `Quick test_lambda;
-    test_case "App" `Quick test_app;
-    test_case "Perform" `Quick test_perform;
-    test_case "Effect" `Quick test_effect;
-    test_case "Handle" `Quick test_handle;
+    Alcotest.test_case "Int" `Quick test_int;
+    Alcotest.test_case "Add" `Quick test_add;
+    Alcotest.test_case "Mult" `Quick test_mult;
+    Alcotest.test_case "Const" `Quick test_const;
+    Alcotest.test_case "Lambda" `Quick test_lambda;
+    Alcotest.test_case "App" `Quick test_app;
+    Alcotest.test_case "Perform" `Quick test_perform;
+    Alcotest.test_case "Effect" `Quick test_effect;
+    Alcotest.test_case "Handle" `Quick test_handle;
   ]
