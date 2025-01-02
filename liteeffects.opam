@@ -12,8 +12,8 @@ bug-reports: "https://github.com/pashutk/liteeffects/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.17"}
-  "alcotest"
-  "cmdliner"
+  "alcotest" {with-test}
+  "cmdliner" {>= "1.3.0"}
   "menhir"
   "odoc" {with-doc}
 ]
