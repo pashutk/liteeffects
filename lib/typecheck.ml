@@ -54,7 +54,10 @@ let rec check (term : exp) (expected : Ast.typ) (env : env_t) :
       | Some _ -> Error (IsNotAFunction name))
   | Perform (_effect, _action, _args) -> Error Unknown
   | Effect (_name, _actions, _next) -> Error Unknown
-  | Handle (_exp, _effect, _actions) -> Error Unknown
+  | Handle (_exp, effect_name, _actions) -> (
+      match StringMap.find_opt effect_name env with
+      | Some (TEffect _) -> Ok ()
+      | _ -> Error (UnknownEffect effect_name))
 
 and synthesize (term : exp) =
   match term with

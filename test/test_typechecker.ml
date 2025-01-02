@@ -100,6 +100,15 @@ let test_add () =
     (let env = StringMap.(empty |> add "a" (TLambda ([], TInt))) in
      check (* a + 1 where a: () => Int *) (Add (Ref "a", Int 1)) TInt env)
 
+let test_handle () =
+  Alcotest.(check (result unit typecheck_error_testable))
+    "handling an exp with unknown effect fails" (Error (UnknownEffect "Math"))
+    (check_main (Handle (Int 1, "Math", [])));
+  Alcotest.(check (result unit typecheck_error_testable))
+    "handling an exp with known effect typechecks" (Ok ())
+    (let env = StringMap.(empty |> add "Math" (TEffect [])) in
+     check (Handle (Int 1, "Math", [])) TInt env)
+
 let test_suite =
   [
     Alcotest.test_case "Int" `Quick test_int;
@@ -108,4 +117,5 @@ let test_suite =
     Alcotest.test_case "Bound" `Quick test_bound;
     Alcotest.test_case "Ref" `Quick test_ref;
     Alcotest.test_case "Add" `Quick test_add;
+    Alcotest.test_case "Handle" `Quick test_handle;
   ]

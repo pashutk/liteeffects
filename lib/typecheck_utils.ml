@@ -16,6 +16,7 @@ type type_error =
   | FunctionApplicationReturnTypeMismatch
   | UndefinedVariable of string
   | Unknown
+  | UnknownEffect of string
 
 let pp_type_error ppf = function
   | Expected (expected, got) ->
@@ -34,3 +35,4 @@ let pp_type_error ppf = function
       Format.fprintf ppf "FunctionApplicationReturnTypeMismatch"
   | UndefinedVariable name -> Format.fprintf ppf "UndefinedVariable %s" name
   | Unknown -> Format.fprintf ppf "Unknown"
+  | UnknownEffect name -> Format.fprintf ppf "UnknownEffect %s" name

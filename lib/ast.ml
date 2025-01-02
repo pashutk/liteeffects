@@ -1,4 +1,4 @@
-type typ = TInt | TLambda of typ list * typ
+type typ = TInt | TLambda of typ list * typ | TEffect of (string * typ) list
 
 type exp =
   | Int of int

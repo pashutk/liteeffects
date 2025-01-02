@@ -7,6 +7,10 @@ let rec pp_ttype fmt = function
       Format.fprintf fmt "(%a) => %a"
         (Format.pp_print_list pp_ttype)
         params pp_ttype result
+  | Ast.TEffect actions ->
+      Format.fprintf fmt "Effect [%a]"
+        (Format.pp_print_list (pp_pair Format.pp_print_string pp_ttype))
+        actions
 
 let pp_lambda_param fmt (name, ttype) =
   Format.fprintf fmt "%s: %a" name pp_ttype ttype
