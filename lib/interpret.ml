@@ -13,14 +13,14 @@ let rec interpret (ast : Ast.exp) (scope : scope) : Int.t =
   | App (name, args) -> (
       let func = StringMap.find name scope in
       match func with
-      | Lambda (params, _return_type, body) ->
+      | Lambda (params, _return_type, _, body) ->
           let bindings =
             List.map2
               (fun (name, _typ) value ->
                 ( name,
                   match value with
                   (* Don't interpret lambda immediately *)
-                  | Lambda (_, _, _) -> value
+                  | Lambda (_, _, _, _) -> value
                   (* Refs original value added with a new name *)
                   | Ref ref_name -> StringMap.find ref_name scope
                   (* Everything else evaluates *)
@@ -32,7 +32,7 @@ let rec interpret (ast : Ast.exp) (scope : scope) : Int.t =
       | _ -> failwith (name ^ " is not a function"))
   | Bound (name, _typ, exp, next) -> (
       match exp with
-      | Lambda (_, _, _) -> interpret next StringMap.(scope |> add name exp)
+      | Lambda (_, _, _, _) -> interpret next StringMap.(scope |> add name exp)
       | _ ->
           let value = interpret exp scope in
           interpret next StringMap.(scope |> add name (Int value)))

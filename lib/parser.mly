@@ -20,6 +20,8 @@
 %token WITH
 %token COLON
 %token TINT
+%token LT
+%token GT
 
 %left PLUS
 %left ASTERISK
@@ -33,7 +35,8 @@ main: e = expr EOF { e }
 
 type_exp:
 | TINT { TInt }
-| LPAREN params = separated_list(COMMA, type_exp) RPAREN ARROW result = type_exp { TLambda (params, result) }
+| LPAREN params = separated_list(COMMA, type_exp) RPAREN ARROW result = type_exp { TLambda (params, None, result) }
+| LPAREN params = separated_list(COMMA, type_exp) RPAREN ARROW LT effects = separated_list(COMMA, ID) GT result = type_exp { TLambda (params, Some effects, result ) }
 
 lambda_param: id = ID COLON ttype = type_exp { (id, ttype) }
 
@@ -42,8 +45,10 @@ lambda_params: LPAREN params = separated_list(COMMA, lambda_param) RPAREN { para
 lambda_body: LBRACE? body = expr RBRACE? { body }
 
 lambda:
-| params = lambda_params COLON ttype = type_exp ARROW body = lambda_body { Lambda (params, Some ttype, body) }
-| params = lambda_params ARROW body = lambda_body { Lambda (params, None, body) }
+| params = lambda_params COLON LT effects = separated_list(COMMA, ID) GT ttype = type_exp ARROW body = lambda_body { Lambda (params, Some effects, Some ttype, body) }
+| params = lambda_params COLON LT effects = separated_list(COMMA, ID) GT ARROW body = lambda_body { Lambda (params, Some effects, None, body) }
+| params = lambda_params COLON ttype = type_exp ARROW body = lambda_body { Lambda (params, None, Some ttype, body) }
+| params = lambda_params ARROW body = lambda_body { Lambda (params, None, None, body) }
 
 app: id = ID LPAREN args = separated_list(COMMA, expr) RPAREN { App (id, args) }
 

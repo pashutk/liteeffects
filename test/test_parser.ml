@@ -28,31 +28,32 @@ let test_const () =
     (Bound ("x", None, Int 1, Bound ("y", None, Int 2, Add (Ref "x", Ref "y"))))
     (parse_string "const x = 1; const y = 2; x + y");
   Alcotest.check ast_testable "parse lambda const binding"
-    (Bound ("f", None, Lambda ([], None, Int 1), Ref "f"))
+    (Bound ("f", None, Lambda ([], None, None, Int 1), Ref "f"))
     (parse_string "const f = () => { 1 }; f");
   Alcotest.check ast_testable "parse with no semicolon"
-    (Bound ("f", None, Lambda ([], None, Int 1), App ("f", [])))
+    (Bound ("f", None, Lambda ([], None, None, Int 1), App ("f", [])))
     (parse_string "const f = () => { 1 }\nf()")
 
 let test_lambda () =
   Alcotest.check ast_testable "parse function w no args"
-    (Lambda ([], None, Int 1))
+    (Lambda ([], None, None, Int 1))
     (parse_string "() => { 1 }");
   Alcotest.check ast_testable "parse function w one arg"
-    (Lambda ([ ("a", TInt) ], None, Int 1))
+    (Lambda ([ ("a", TInt) ], None, None, Int 1))
     (parse_string "(a: Int) => { 1 }");
   Alcotest.check ast_testable "parse function w one arg and return type"
-    (Lambda ([ ("a", TInt) ], Some TInt, Int 1))
+    (Lambda ([ ("a", TInt) ], None, Some TInt, Int 1))
     (parse_string "(a: Int): Int => { 1 }");
   Alcotest.check ast_testable "parse function w lambda param"
-    (Lambda ([ ("f", TLambda ([ TInt ], TInt)) ], Some TInt, Int 1))
+    (Lambda ([ ("f", TLambda ([ TInt ], None, TInt)) ], None, Some TInt, Int 1))
     (parse_string "(f: (Int) => Int): Int => { 1 }");
   Alcotest.check ast_testable "parse function w multiple args"
-    (Lambda ([ ("a", TInt); ("b", TInt); ("c", TInt) ], None, Int 1))
+    (Lambda ([ ("a", TInt); ("b", TInt); ("c", TInt) ], None, None, Int 1))
     (parse_string "(a: Int, b: Int, c: Int) => { 1 }");
   Alcotest.check ast_testable "parse function w const bindings"
     (Lambda
        ( [],
+         None,
          None,
          Bound
            ( "x",
@@ -75,8 +76,17 @@ let test_lambda () =
         result\n\
         }");
   Alcotest.check ast_testable "parse lambda with no braces"
-    (Lambda ([], None, Int 1))
-    (parse_string "() => 1 ")
+    (Lambda ([], None, None, Int 1))
+    (parse_string "() => 1 ");
+  Alcotest.check ast_testable "parse lambda w 1 effect and no return type"
+    (Lambda ([], Some [ "Console" ], None, Int 1))
+    (parse_string "(): <Console> => { 1 }");
+  Alcotest.check ast_testable "parse lambda w 1 effect and return type"
+    (Lambda ([], Some [ "Console" ], None, Int 1))
+    (parse_string "(): <Console> => { 1 }");
+  Alcotest.check ast_testable "parse lambda w many effects"
+    (Lambda ([], Some [ "Console"; "Env" ], None, Int 1))
+    (parse_string "(): <Console, Env> => { 1 }")
 
 let test_app () =
   Alcotest.check ast_testable "parse simple application"
@@ -86,7 +96,7 @@ let test_app () =
     (App ("withArgs", [ Int 2; Int 3 ]))
     (parse_string "withArgs(2, 3)");
   Alcotest.check ast_testable "parse lambda with application"
-    (Lambda ([], None, Add (Int 1, App ("withArgs", [ Int 2 ]))))
+    (Lambda ([], None, None, Add (Int 1, App ("withArgs", [ Int 2 ]))))
     (parse_string "() => { 1 + withArgs(2) }")
 
 let test_perform () =
@@ -108,8 +118,8 @@ let test_handle () =
        ( App ("effectfulComputation", [ Int 1 ]),
          "Math",
          [
-           ("pi", Lambda ([], None, Int 1));
-           ("sin", Lambda ([ ("a", TInt) ], None, Add (Ref "a", Int 1)));
+           ("pi", Lambda ([], None, None, Int 1));
+           ("sin", Lambda ([ ("a", TInt) ], None, None, Add (Ref "a", Int 1)));
          ] ))
     (parse_string
        "handle effectfulComputation(1) with Math { pi: () => { 1 }, sin: (a: \

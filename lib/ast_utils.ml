@@ -1,12 +1,21 @@
 let pp_pair pp_first pp_second fmt (first, second) =
   Format.fprintf fmt "(%a, %a)" pp_first first pp_second second
 
+let pp_effects fmt effects =
+  Format.fprintf fmt "<%a>"
+    (Format.pp_print_list Format.pp_print_string)
+    effects
+
 let rec pp_ttype fmt = function
   | Ast.TInt -> Format.fprintf fmt "Int"
-  | Ast.TLambda (params, result) ->
+  | Ast.TLambda (params, None, result) ->
       Format.fprintf fmt "(%a) => %a"
         (Format.pp_print_list pp_ttype)
         params pp_ttype result
+  | Ast.TLambda (params, Some effects, result) ->
+      Format.fprintf fmt "(%a) => <%a> %a"
+        (Format.pp_print_list pp_ttype)
+        params pp_effects effects pp_ttype result
   | Ast.TEffect actions ->
       Format.fprintf fmt "Effect [%a]"
         (Format.pp_print_list (pp_pair Format.pp_print_string pp_ttype))
@@ -23,14 +32,17 @@ let rec pp_ast fmt = function
   | Ast.Ref name -> Format.fprintf fmt "Ref %s" name
   | Ast.Add (a, b) -> Format.fprintf fmt "Add (%a, %a)" pp_ast a pp_ast b
   | Ast.Mult (a, b) -> Format.fprintf fmt "Mult (%a, %a)" pp_ast a pp_ast b
-  | Ast.Lambda (params, return_type, exp) -> (
-      match return_type with
-      | None ->
-          Format.fprintf fmt "Lambda (%a => %a)" pp_lambda_params params pp_ast
-            exp
-      | Some ttype ->
-          Format.fprintf fmt "Lambda (%a: %a => %a)" pp_lambda_params params
-            pp_ttype ttype pp_ast exp)
+  | Ast.Lambda (params, None, None, exp) ->
+      Format.fprintf fmt "Lambda (%a => %a)" pp_lambda_params params pp_ast exp
+  | Ast.Lambda (params, Some effects, None, exp) ->
+      Format.fprintf fmt "Lambda (%a: %a => %a)" pp_lambda_params params
+        pp_effects effects pp_ast exp
+  | Ast.Lambda (params, None, Some return_type, exp) ->
+      Format.fprintf fmt "Lambda (%a: %a => %a)" pp_lambda_params params
+        pp_ttype return_type pp_ast exp
+  | Ast.Lambda (params, Some effects, Some return_type, exp) ->
+      Format.fprintf fmt "Lambda (%a: %a %a => %a)" pp_lambda_params params
+        pp_effects effects pp_ttype return_type pp_ast exp
   | Ast.App (id, args) ->
       Format.fprintf fmt "App (%s, %a)" id (Format.pp_print_list pp_ast) args
   | Ast.Perform (effect, action, args) ->

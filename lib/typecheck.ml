@@ -6,24 +6,27 @@ let rec check (term : exp) (expected : Ast.typ) (env : env_t) :
   match term with
   | Int _ ->
       if expected != TInt then Error (Expected (expected, TInt)) else Ok ()
-  | Lambda (params, Some return_type, _result) -> (
+  | Lambda (params, _, Some return_type, _result) -> (
       match expected with
-      | TLambda (expected_params, _)
+      | TLambda (expected_params, _, _)
         when List.length params != List.length expected_params ->
           Error LambdaParamsCountMismatch
-      | TLambda (expected_params, _)
+      | TLambda (expected_params, _, _)
         when List.exists2
                (fun (_name, typ) expected_typ -> typ != expected_typ)
                params expected_params ->
           Error LambdaParamTypeMismatch
-      | TLambda (_, expected_result) when return_type != expected_result ->
+      | TLambda (_, _, expected_result) when return_type != expected_result ->
           Error LambdaReturnTypeMismatch
-      | TLambda (_, _) -> Ok ()
+      | TLambda (_, _, _) -> Ok ()
       | _ ->
           Error
-            (Expected (expected, TLambda (List.map snd params, return_type))))
-  | Lambda (params, None, result) ->
-      check (Lambda (params, Some (synthesize result), result)) expected env
+            (Expected
+               (expected, TLambda (List.map snd params, None, return_type))))
+  | Lambda (params, _, None, result) ->
+      check
+        (Lambda (params, None, Some (synthesize result), result))
+        expected env
   | Add (left, right) when expected == TInt ->
       Result.bind (check left TInt env) (fun () -> check right TInt env)
   | Add (_, _) -> Error (Expected (expected, TInt))
@@ -39,10 +42,10 @@ let rec check (term : exp) (expected : Ast.typ) (env : env_t) :
   | App (name, args) -> (
       match StringMap.find_opt name env with
       | None -> Error (UndefinedFunction name)
-      | Some (Ast.TLambda (params, _))
+      | Some (Ast.TLambda (params, _, _))
         when List.length args != List.length params ->
           Error FunctionCallArgCountMismatch
-      | Some (Ast.TLambda (params, ret_typ)) ->
+      | Some (Ast.TLambda (params, None, ret_typ)) ->
           if
             List.for_all2
               (fun arg param -> Result.is_ok (check arg param env))
@@ -63,8 +66,8 @@ and synthesize (term : exp) =
   match term with
   | Int _ -> TInt
   | Add (_, _) -> TInt
-  | Lambda (params, None, body) ->
-      TLambda (params |> List.map snd, synthesize body)
+  | Lambda (params, None, _, body) ->
+      TLambda (params |> List.map snd, None, synthesize body)
   | Bound (_name, None, exp, _next) -> synthesize exp
   | _ ->
       failwith

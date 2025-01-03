@@ -19,12 +19,12 @@ let test_add () =
        (Add (App ("f", [ Int 1 ]), Int 2))
        (let f =
           (* a => a + 3 *)
-          Lambda ([ ("a", TInt) ], None, Add (Ref "a", Int 3))
+          Lambda ([ ("a", TInt) ], None, None, Add (Ref "a", Int 3))
         in
         StringMap.(empty |> add "f" f)));
   Alcotest.check_raises "interpreting addition of anything else fails"
     (Failure "Not implemented or the ast hasn't been typechecked") (fun () ->
-      ignore (interpret_empty (Add (Lambda ([], None, Int 1), Int 2))))
+      ignore (interpret_empty (Add (Lambda ([], None, None, Int 1), Int 2))))
 
 let test_mult () =
   Alcotest.(check int)
@@ -41,33 +41,35 @@ let test_bound () =
        (Bound
           ( "f",
             None,
-            Lambda ([ ("a", TInt) ], None, Ref "a"),
+            Lambda ([ ("a", TInt) ], None, None, Ref "a"),
             App ("f", [ Int 1 ]) )));
   Alcotest.(check int)
     "application of lambda interprets" 2
     (interpret_empty
        (* const app = (f, value) => f(value); app((a) => a + 1, 1) *)
        ((* (Int) => Int *)
-        let f_param_type = TLambda ([ TInt ], TInt) in
+        let f_param_type = TLambda ([ TInt ], None, TInt) in
         (* (f: f_param_type, value: Int) => f(value) *)
         let app =
           Lambda
             ( [ ("f", f_param_type); ("value", TInt) ],
               None,
+              None,
               App ("f", [ Ref "value" ]) )
         in
-        let inc = Lambda ([ ("a", TInt) ], None, Add (Ref "a", Int 1)) in
+        let inc = Lambda ([ ("a", TInt) ], None, None, Add (Ref "a", Int 1)) in
         let result = App ("app", [ inc; Int 1 ]) in
         Bound ("app", None, app, result)));
   Alcotest.(check int)
     "application of bound lambda interprets" 2
     (interpret_empty
        (* const inc = (a) => a + 1; const app = (f, value) => f(value); app(inc, 1) *)
-       (let inc = Lambda ([ ("a", TInt) ], None, Add (Ref "a", Int 1)) in
-        let f_param_type = TLambda ([ TInt ], TInt) in
+       (let inc = Lambda ([ ("a", TInt) ], None, None, Add (Ref "a", Int 1)) in
+        let f_param_type = TLambda ([ TInt ], None, TInt) in
         let app =
           Lambda
             ( [ ("f", f_param_type); ("value", TInt) ],
+              None,
               None,
               App ("f", [ Ref "value" ]) )
         in

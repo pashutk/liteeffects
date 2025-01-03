@@ -1,9 +1,14 @@
-type typ = TInt | TLambda of typ list * typ | TEffect of (string * typ) list
+type lambda_effects = string list option
+
+type typ =
+  | TInt
+  | TLambda of typ list * lambda_effects * typ
+  | TEffect of (string * typ) list
 
 type exp =
   | Int of int
   | Add of exp * exp
-  | Lambda of (string * typ) list * typ option * exp
+  | Lambda of (string * typ) list * lambda_effects * typ option * exp
   (* const name = exp; exp *)
   | Bound of string * typ option * exp * exp
   | Ref of string

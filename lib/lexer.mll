@@ -28,6 +28,8 @@ rule token = parse
     | "," { COMMA }
     | "*" { ASTERISK }
     | "." { DOT }
+    | "<" { LT }
+    | ">" { GT }
     | int as i { INT (int_of_string(i)) }
     | id as word { ID word }
     | eof { EOF }
