@@ -2,8 +2,8 @@ open Ast
 open Typecheck_utils
 
 let rec check (term : exp) (expected_type : Ast.typ)
-    (expected_effects : string list) (env : env_t) : (unit, type_error) Result.t
-    =
+    (expected_effects : string list) (env : TEnv.t) :
+    (unit, type_error) Result.t =
   match term with
   | Int _ when expected_type == TInt -> Ok ()
   | Int _ -> Error (Expected (expected_type, TInt))
@@ -35,16 +35,16 @@ let rec check (term : exp) (expected_type : Ast.typ)
   | Add (_, _) -> Error (Expected (expected_type, TInt))
   | Bound (name, None, value, next) ->
       check next expected_type expected_effects
-        (StringMap.add name (synthesize value) env)
+        (env |> TEnv.add_binding name (synthesize value))
   | Bound (_name, Some _typ, _value, _next) -> Error Unknown
   | Ref name -> (
-      match StringMap.find_opt name env with
+      match env |> TEnv.find_binding_opt name with
       | None -> Error (UndefinedVariable name)
       | Some typ when typ = expected_type -> Ok ()
       | Some typ -> Error (Expected (expected_type, typ)))
   | Mult (_left, _right) -> Error Unknown
   | App (name, args) -> (
-      match StringMap.find_opt name env with
+      match env |> TEnv.find_binding_opt name with
       | None -> Error (UndefinedFunction name)
       | Some (Ast.TLambda (params, _, _))
         when List.length args != List.length params ->
@@ -60,12 +60,13 @@ let rec check (term : exp) (expected_type : Ast.typ)
             else Error FunctionApplicationReturnTypeMismatch
           else Error FunctionCallArgTypeMismatch
       | Some _ -> Error (IsNotAFunction name))
-  | Perform (effect, _action, _args) when not (StringMap.mem effect env) ->
+  | Perform (effect, _action, _args) when not (env |> TEnv.has_binding effect)
+    ->
       Error (UnknownEffect effect)
   | Perform (_effect, _action, _args) -> Error Unknown
   | Effect (_name, _actions, _next) -> Error Unknown
   | Handle (_exp, effect_name, _actions) -> (
-      match StringMap.find_opt effect_name env with
+      match env |> TEnv.find_binding_opt effect_name with
       | Some (TEffect _) -> Ok ()
       | _ -> Error (UnknownEffect effect_name))
 
@@ -82,6 +83,6 @@ and synthesize (term : exp) =
            Ast_utils.pp_ast term)
 
 let check_empty ast expected_type expected_effects =
-  check ast expected_type expected_effects StringMap.empty
+  check ast expected_type expected_effects TEnv.empty
 
-let check_main ast = check ast TInt [] StringMap.empty
+let check_main ast = check ast TInt [] TEnv.empty
