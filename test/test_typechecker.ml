@@ -6,28 +6,29 @@ open Liteeffects.Ast
 let test_int () =
   Alcotest.(check (result unit typecheck_error_testable))
     "passes int typecheck" (Ok ())
-    (check (Int 1) TInt StringMap.empty)
+    (check (Int 1) TInt [] StringMap.empty)
 
 let test_lambda () =
   Alcotest.(check (result unit typecheck_error_testable))
     "fails int typecheck"
     (Error (Expected (TInt, TLambda ([], None, TInt))))
-    (check (Lambda ([], None, None, Int 1)) TInt StringMap.empty);
+    (check (Lambda ([], None, None, Int 1)) TInt [] StringMap.empty);
   Alcotest.(check (result unit typecheck_error_testable))
     "lambda type synthesizes" (Ok ())
-    (check_empty (Lambda ([], None, None, Int 1)) (TLambda ([], None, TInt)));
+    (check_empty (Lambda ([], None, None, Int 1)) (TLambda ([], None, TInt)) []);
   Alcotest.(check (result unit typecheck_error_testable))
     "lambda type synthesis fails" (Error LambdaReturnTypeMismatch)
     (let nested_lambda = Lambda ([], None, None, Int 1) in
      check_empty
        (Lambda ([], None, None, nested_lambda))
-       (TLambda ([], None, TInt)))
+       (TLambda ([], None, TInt))
+       [])
 
 let test_app () =
   Alcotest.(check (result unit typecheck_error_testable))
     "function application w no arguments typechecks" (Ok ())
     (let env = StringMap.(empty |> add "main" (TLambda ([], None, TInt))) in
-     check (App ("main", [])) TInt env);
+     check (App ("main", [])) TInt [] env);
   Alcotest.(check (result unit typecheck_error_testable))
     "function application return type mismatch fails"
     (Error FunctionApplicationReturnTypeMismatch)
@@ -35,7 +36,7 @@ let test_app () =
        StringMap.(
          empty |> add "main" (TLambda ([], None, TLambda ([], None, TInt))))
      in
-     check (App ("main", [])) TInt env);
+     check (App ("main", [])) TInt [] env);
   Alcotest.(check (result unit typecheck_error_testable))
     "function application w wrong args count fails"
     (Error FunctionCallArgCountMismatch)
@@ -43,7 +44,7 @@ let test_app () =
        StringMap.(
          empty |> add "main" (TLambda ([], None, TLambda ([], None, TInt))))
      in
-     check (App ("main", [ Int 1 ])) TInt env);
+     check (App ("main", [ Int 1 ])) TInt [] env);
   Alcotest.(check (result unit typecheck_error_testable))
     "function application w wrong arg type fails"
     (Error FunctionCallArgTypeMismatch)
@@ -51,12 +52,12 @@ let test_app () =
        TLambda ([ TLambda ([], None, TInt) ], None, TLambda ([], None, TInt))
      in
      let env = StringMap.(empty |> add "main" main_type) in
-     check (App ("main", [ Int 1 ])) TInt env);
+     check (App ("main", [ Int 1 ])) TInt [] env);
   Alcotest.(check (result unit typecheck_error_testable))
     "not a function application fails" (Error (IsNotAFunction "x"))
     (let x_type = TInt in
      let env = StringMap.(empty |> add "x" x_type) in
-     check (App ("x", [ Int 1 ])) TInt env)
+     check (App ("x", [ Int 1 ])) TInt [] env)
 
 let test_bound () =
   Alcotest.(check (result unit typecheck_error_testable))
@@ -66,25 +67,26 @@ let test_bound () =
      check
        (* const x = 4; f(x) where f accepts int *)
        (Bound ("x", None, Int 4, App ("f", [ Ref "x" ])))
-       TInt env);
+       TInt [] env);
   Alcotest.(check (result unit typecheck_error_testable))
     "bound lambda type synthesizes" (Ok ())
     (check_empty
        (Bound ("f", None, Lambda ([], None, None, Int 1), Ref "f"))
-       (TLambda ([], None, TInt)))
+       (TLambda ([], None, TInt))
+       [])
 
 let test_ref () =
   Alcotest.(check (result unit typecheck_error_testable))
     "ref typechecks" (Ok ())
     (let x_type = TInt in
      let env = StringMap.(empty |> add "x" x_type) in
-     check (Ref "x") TInt env);
+     check (Ref "x") TInt [] env);
   Alcotest.(check (result unit typecheck_error_testable))
     "ref typecheck fails"
     (Error (Expected (TLambda ([ TInt ], None, TInt), TInt)))
     (let x_type = TInt in
      let env = StringMap.(empty |> add "x" x_type) in
-     check (Ref "x") (TLambda ([ TInt ], None, TInt)) env);
+     check (Ref "x") (TLambda ([ TInt ], None, TInt)) [] env);
   Alcotest.(check (result unit typecheck_error_testable))
     "ref application type mismatch fails" (Error FunctionCallArgTypeMismatch)
     (* f: (() => Int) => Int *)
@@ -93,18 +95,18 @@ let test_ref () =
      check
        (* const x = 4; f(x) *)
        (Bound ("x", None, Int 4, App ("f", [ Ref "x" ])))
-       TInt env)
+       TInt [] env)
 
 let test_add () =
   Alcotest.(check (result unit typecheck_error_testable))
     "addition of ints typechecks" (Ok ())
     (let env = StringMap.(empty |> add "a" TInt) in
-     check (* a + 1 where a: Int *) (Add (Ref "a", Int 1)) TInt env);
+     check (* a + 1 where a: Int *) (Add (Ref "a", Int 1)) TInt [] env);
   Alcotest.(check (result unit typecheck_error_testable))
     "int + lambda typecheck fails"
     (Error (Expected (TInt, TLambda ([], None, TInt))))
     (let env = StringMap.(empty |> add "a" (TLambda ([], None, TInt))) in
-     check (* a + 1 where a: () => Int *) (Add (Ref "a", Int 1)) TInt env)
+     check (* a + 1 where a: () => Int *) (Add (Ref "a", Int 1)) TInt [] env)
 
 let test_handle () =
   Alcotest.(check (result unit typecheck_error_testable))
@@ -113,7 +115,16 @@ let test_handle () =
   Alcotest.(check (result unit typecheck_error_testable))
     "handling an exp with known effect typechecks" (Ok ())
     (let env = StringMap.(empty |> add "Math" (TEffect [])) in
-     check (Handle (Int 1, "Math", [])) TInt env)
+     check (Handle (Int 1, "Math", [])) TInt [] env);
+  Alcotest.(check (result unit typecheck_error_testable))
+    "handling non effectful expression typechecks" (Ok ())
+    (let env = StringMap.(empty |> add "Math" (TEffect [])) in
+     check (Handle (Int 1, "Math", [])) TInt [] env)
+
+let test_perform () =
+  Alcotest.(check (result unit typecheck_error_testable))
+    "performing unknown effect fails" (Error (UnknownEffect "Console"))
+    (check_main (Perform ("Console", "log", [])))
 
 let test_suite =
   [
@@ -124,4 +135,5 @@ let test_suite =
     Alcotest.test_case "Ref" `Quick test_ref;
     Alcotest.test_case "Add" `Quick test_add;
     Alcotest.test_case "Handle" `Quick test_handle;
+    Alcotest.test_case "Perform" `Quick test_perform;
   ]
