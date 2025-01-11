@@ -109,8 +109,14 @@ let test_perform () =
 
 let test_effect () =
   Alcotest.check ast_testable "parse effect definition"
-    (Effect ("Math", [ "pi"; "sin" ], Int 1))
-    (parse_string "effect Math {pi, sin}; 1")
+    (Effect
+       ( "Math",
+         [
+           ("pi", TLambda ([], None, TInt));
+           ("sin", TLambda ([ TInt ], None, TInt));
+         ],
+         Int 1 ))
+    (parse_string "effect Math {pi: () => Int, sin: (Int) => Int}; 1")
 
 let test_handle () =
   Alcotest.check ast_testable "parse handle definition"

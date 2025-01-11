@@ -1,9 +1,6 @@
 type lambda_effects = string list option
-
-type typ =
-  | TInt
-  | TLambda of typ list * lambda_effects * typ
-  | TEffect of (string * typ) list
+type typ = TInt | TLambda of typ list * lambda_effects * typ
+type effect = (string * typ) list
 
 type exp =
   | Int of int
@@ -15,5 +12,5 @@ type exp =
   | Mult of exp * exp
   | App of string * exp list
   | Perform of string * string * exp list
-  | Effect of string * string list * exp
+  | Effect of string * (string * typ) list * exp
   | Handle of exp * string * (string * exp) list

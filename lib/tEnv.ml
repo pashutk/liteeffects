@@ -13,3 +13,12 @@ let add_binding name binding env =
 
 let find_binding_opt name env = StringMap.find_opt name env.bindings
 let has_binding name env = StringMap.mem name env.bindings
+
+let add_effect name effect env =
+  {
+    bindings = env.bindings;
+    effects = env.effects |> StringMap.add name effect;
+  }
+
+let find_effect_opt name env = StringMap.find_opt name env.effects
+let has_effect name env = StringMap.mem name env.effects

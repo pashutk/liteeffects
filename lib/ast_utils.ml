@@ -16,10 +16,6 @@ let rec pp_ttype fmt = function
       Format.fprintf fmt "(%a) => <%a> %a"
         (Format.pp_print_list pp_ttype)
         params pp_effects effects pp_ttype result
-  | Ast.TEffect actions ->
-      Format.fprintf fmt "Effect [%a]"
-        (Format.pp_print_list (pp_pair Format.pp_print_string pp_ttype))
-        actions
 
 let pp_lambda_param fmt (name, ttype) =
   Format.fprintf fmt "%s: %a" name pp_ttype ttype
@@ -56,7 +52,7 @@ let rec pp_ast fmt = function
         pp_ast value pp_ast exp
   | Ast.Effect (name, actions, next) ->
       Format.fprintf fmt "Effect (%s, %a, %a)" name
-        (Format.pp_print_list Format.pp_print_string)
+        (Format.pp_print_list (pp_pair Format.pp_print_string pp_ttype))
         actions pp_ast next
   | Ast.Handle (exp, effect, actions) ->
       Format.fprintf fmt "Handle (%a, %s, %a)" pp_ast exp effect

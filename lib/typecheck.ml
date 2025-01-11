@@ -60,14 +60,16 @@ let rec check (term : exp) (expected_type : Ast.typ)
             else Error FunctionApplicationReturnTypeMismatch
           else Error FunctionCallArgTypeMismatch
       | Some _ -> Error (IsNotAFunction name))
-  | Perform (effect, _action, _args) when not (env |> TEnv.has_binding effect)
-    ->
-      Error (UnknownEffect effect)
-  | Perform (_effect, _action, _args) -> Error Unknown
-  | Effect (_name, _actions, _next) -> Error Unknown
+  | Perform (effect, _action, _args) -> (
+      match env |> TEnv.find_effect_opt effect with
+      | None -> Error (UnknownEffect effect)
+      | Some _ -> Error Unknown)
+  | Effect (name, actions, next) ->
+      check next expected_type expected_effects
+        (env |> TEnv.add_effect name (StringMap.of_seq (List.to_seq actions)))
   | Handle (_exp, effect_name, _actions) -> (
-      match env |> TEnv.find_binding_opt effect_name with
-      | Some (TEffect _) -> Ok ()
+      match env |> TEnv.find_effect_opt effect_name with
+      | Some _ -> Ok ()
       | _ -> Error (UnknownEffect effect_name))
 
 and synthesize (term : exp) =

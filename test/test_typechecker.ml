@@ -115,11 +115,11 @@ let test_handle () =
     (check_main (Handle (Int 1, "Math", [])));
   Alcotest.(check (result unit typecheck_error_testable))
     "handling an exp with known effect typechecks" (Ok ())
-    (let env = empty |> add_binding "Math" (TEffect []) in
+    (let env = empty |> add_effect "Math" StringMap.empty in
      check (Handle (Int 1, "Math", [])) TInt [] env);
   Alcotest.(check (result unit typecheck_error_testable))
     "handling non effectful expression typechecks" (Ok ())
-    (let env = empty |> add_binding "Math" (TEffect []) in
+    (let env = empty |> add_effect "Math" StringMap.empty in
      check (Handle (Int 1, "Math", [])) TInt [] env)
 
 let test_perform () =

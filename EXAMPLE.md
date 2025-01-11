@@ -17,8 +17,8 @@ const application = () => {
 // 6
 
 effect Math {
-  pi,
-  sin
+  pi: () => Int,
+  sin: (Int) => Int
 }
 
 const circleSquare = (r) => {
