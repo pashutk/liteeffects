@@ -27,7 +27,7 @@ let rec check (term : exp) (expected_type : Ast.typ)
       )
   | Lambda (params, _, None, result) ->
       check
-        (Lambda (params, None, Some (synthesize result), result))
+        (Lambda (params, None, Some (fst (synthesize result)), result))
         expected_type expected_effects env
   | Add (left, right) when expected_type == TInt ->
       Result.bind (check left TInt expected_effects env) (fun () ->
@@ -35,7 +35,7 @@ let rec check (term : exp) (expected_type : Ast.typ)
   | Add (_, _) -> Error (Expected (expected_type, TInt))
   | Bound (name, None, value, next) ->
       check next expected_type expected_effects
-        (env |> TEnv.add_binding name (synthesize value))
+        (env |> TEnv.add_binding name (fst (synthesize value)))
   | Bound (_name, Some _typ, _value, _next) -> Error Unknown
   | Ref name -> (
       match env |> TEnv.find_binding_opt name with
@@ -65,19 +65,20 @@ let rec check (term : exp) (expected_type : Ast.typ)
       | None -> Error (UnknownEffect effect)
       | Some _ -> Error Unknown)
   | Effect (name, actions, next) ->
+      let actions_map = StringMap.of_seq (List.to_seq actions) in
       check next expected_type expected_effects
-        (env |> TEnv.add_effect name (StringMap.of_seq (List.to_seq actions)))
+        (env |> TEnv.add_effect name actions_map)
   | Handle (_exp, effect_name, _actions) -> (
       match env |> TEnv.find_effect_opt effect_name with
       | Some _ -> Ok ()
       | _ -> Error (UnknownEffect effect_name))
 
-and synthesize (term : exp) =
+and synthesize (term : exp) : Ast.typ * string list =
   match term with
-  | Int _ -> TInt
-  | Add (_, _) -> TInt
+  | Int _ -> (TInt, [])
+  | Add (_, _) -> (TInt, [])
   | Lambda (params, None, _, body) ->
-      TLambda (params |> List.map snd, None, synthesize body)
+      (TLambda (params |> List.map snd, None, fst (synthesize body)), [])
   | Bound (_name, None, exp, _next) -> synthesize exp
   | _ ->
       failwith
