@@ -131,15 +131,17 @@ let test_handle () =
        "handle effectfulComputation(1) with Math { pi: () => { 1 }, sin: (a: \
         Int) => { a + 1 } }")
 
-let test_suite =
-  [
-    Alcotest.test_case "Int" `Quick test_int;
-    Alcotest.test_case "Add" `Quick test_add;
-    Alcotest.test_case "Mult" `Quick test_mult;
-    Alcotest.test_case "Const" `Quick test_const;
-    Alcotest.test_case "Lambda" `Quick test_lambda;
-    Alcotest.test_case "App" `Quick test_app;
-    Alcotest.test_case "Perform" `Quick test_perform;
-    Alcotest.test_case "Effect" `Quick test_effect;
-    Alcotest.test_case "Handle" `Quick test_handle;
-  ]
+let () =
+  let open Alcotest in
+  run "Parser"
+    [
+      ("Int", [ test_case "Int" `Quick test_int ]);
+      ("Add", [ test_case "Add" `Quick test_add ]);
+      ("Mult", [ test_case "Mult" `Quick test_mult ]);
+      ("Const", [ test_case "Const" `Quick test_const ]);
+      ("Lambda", [ test_case "Lambda" `Quick test_lambda ]);
+      ("App", [ test_case "App" `Quick test_app ]);
+      ("Perform", [ test_case "Perform" `Quick test_perform ]);
+      ("Effect", [ test_case "Effect" `Quick test_effect ]);
+      ("Handle", [ test_case "Handle" `Quick test_handle ]);
+    ]

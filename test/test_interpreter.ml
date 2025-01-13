@@ -77,10 +77,12 @@ let test_bound () =
 
         Bound ("inc", None, inc, Bound ("app", None, app, result))))
 
-let test_suite =
-  [
-    Alcotest.test_case "Add" `Quick test_add;
-    Alcotest.test_case "Int" `Quick test_int;
-    Alcotest.test_case "Mult" `Quick test_mult;
-    Alcotest.test_case "Bound" `Quick test_bound;
-  ]
+let () =
+  let open Alcotest in
+  run "Interpreter"
+    [
+      ("Add", [ test_case "Add" `Quick test_add ]);
+      ("Int", [ test_case "Int" `Quick test_int ]);
+      ("Mult", [ test_case "Mult" `Quick test_mult ]);
+      ("Bound", [ test_case "Bound" `Quick test_bound ]);
+    ]

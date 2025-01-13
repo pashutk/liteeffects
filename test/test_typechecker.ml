@@ -127,14 +127,22 @@ let test_perform () =
     "performing unknown effect fails" (Error (UnknownEffect "Console"))
     (check_main (Perform ("Console", "log", [])))
 
-let test_suite =
-  [
-    Alcotest.test_case "Int" `Quick test_int;
-    Alcotest.test_case "Lambda" `Quick test_lambda;
-    Alcotest.test_case "App" `Quick test_app;
-    Alcotest.test_case "Bound" `Quick test_bound;
-    Alcotest.test_case "Ref" `Quick test_ref;
-    Alcotest.test_case "Add" `Quick test_add;
-    Alcotest.test_case "Handle" `Quick test_handle;
-    Alcotest.test_case "Perform" `Quick test_perform;
-  ]
+let test_synthesize () =
+  Alcotest.(check (result unit typecheck_error_testable))
+    "performing unknown effect fails" (Error (UnknownEffect "Console"))
+    (check_main (Perform ("Console", "log", [])))
+
+let () =
+  let open Alcotest in
+  run "Typechecker"
+    [
+      ("Int", [ test_case "Int" `Quick test_int ]);
+      ("Lambda", [ test_case "Lambda" `Quick test_lambda ]);
+      ("App", [ test_case "App" `Quick test_app ]);
+      ("Bound", [ test_case "Bound" `Quick test_bound ]);
+      ("Ref", [ test_case "Ref" `Quick test_ref ]);
+      ("Add", [ test_case "Add" `Quick test_add ]);
+      ("Handle", [ test_case "Handle" `Quick test_handle ]);
+      ("Perform", [ test_case "Perform" `Quick test_perform ]);
+      ("Sythesize", [ test_case "Sythesize" `Quick test_synthesize ]);
+    ]
