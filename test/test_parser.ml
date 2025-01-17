@@ -1,4 +1,5 @@
 open Test_utils
+open Liteeffects.Ast
 open Liteeffects.Ast_utils
 
 let test_int () =
@@ -79,13 +80,13 @@ let test_lambda () =
     (Lambda ([], None, None, Int 1))
     (parse_string "() => 1 ");
   Alcotest.check ast_testable "parse lambda w 1 effect and no return type"
-    (Lambda ([], Some [ "Console" ], None, Int 1))
+    (Lambda ([], Some (EffectSet.of_list [ "Console" ]), None, Int 1))
     (parse_string "(): <Console> => { 1 }");
   Alcotest.check ast_testable "parse lambda w 1 effect and return type"
-    (Lambda ([], Some [ "Console" ], None, Int 1))
+    (Lambda ([], Some (EffectSet.of_list [ "Console" ]), None, Int 1))
     (parse_string "(): <Console> => { 1 }");
   Alcotest.check ast_testable "parse lambda w many effects"
-    (Lambda ([], Some [ "Console"; "Env" ], None, Int 1))
+    (Lambda ([], Some (EffectSet.of_list [ "Console"; "Env" ]), None, Int 1))
     (parse_string "(): <Console, Env> => { 1 }")
 
 let test_app () =

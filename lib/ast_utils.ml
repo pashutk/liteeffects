@@ -4,7 +4,7 @@ let pp_pair pp_first pp_second fmt (first, second) =
 let pp_effects fmt effects =
   Format.fprintf fmt "<%a>"
     (Format.pp_print_list Format.pp_print_string)
-    effects
+    (Ast.EffectSet.elements effects)
 
 let rec pp_ttype fmt = function
   | Ast.TInt -> Format.fprintf fmt "Int"

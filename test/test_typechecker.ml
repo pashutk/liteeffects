@@ -127,10 +127,18 @@ let test_perform () =
     "performing unknown effect fails" (Error (UnknownEffect "Console"))
     (check_main (Perform ("Console", "log", [])))
 
-let test_synthesize () =
-  Alcotest.(check (result unit typecheck_error_testable))
-    "performing unknown effect fails" (Error (UnknownEffect "Console"))
-    (check_main (Perform ("Console", "log", [])))
+let test_synthesize_int () =
+  Alcotest.(check (pair typ_testable effect_set_testable))
+    "synthesizes int type" (TInt, EffectSet.empty) (synthesize (Int 2))
+
+let test_synthesize_add () =
+  Alcotest.(check (pair typ_testable effect_set_testable))
+    "synthesizes add type w no effects" (TInt, EffectSet.empty)
+    (synthesize (Add (Int 1, Int 2)));
+  Alcotest.(check (pair typ_testable effect_set_testable))
+    "synthesizes add type w effects"
+    (TInt, EffectSet.of_list [ "Math" ])
+    (synthesize (Add (Int 1, Perform ("Math", "pi", []))))
 
 let () =
   let open Alcotest in
@@ -144,5 +152,9 @@ let () =
       ("Add", [ test_case "Add" `Quick test_add ]);
       ("Handle", [ test_case "Handle" `Quick test_handle ]);
       ("Perform", [ test_case "Perform" `Quick test_perform ]);
-      ("Sythesize", [ test_case "Sythesize" `Quick test_synthesize ]);
+      ( "Synthesize",
+        [
+          test_case "Int" `Quick test_synthesize_int;
+          test_case "Add" `Quick test_synthesize_add;
+        ] );
     ]

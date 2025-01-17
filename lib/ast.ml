@@ -1,4 +1,6 @@
-type lambda_effects = string list option
+module EffectSet = Set.Make (String)
+
+type lambda_effects = EffectSet.t option
 type typ = TInt | TLambda of typ list * lambda_effects * typ
 type effect = (string * typ) list
 

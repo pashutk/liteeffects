@@ -73,16 +73,39 @@ let rec check (term : exp) (expected_type : Ast.typ)
       | Some _ -> Ok ()
       | _ -> Error (UnknownEffect effect_name))
 
-and synthesize (term : exp) : Ast.typ * string list =
+and synthesize (term : exp) : Ast.typ * EffectSet.t =
   match term with
-  | Int _ -> (TInt, [])
-  | Add (_, _) -> (TInt, [])
+  | Int _ -> (TInt, EffectSet.empty)
+  | Add (left, right) ->
+      (TInt, EffectSet.union (synthesize_effect left) (synthesize_effect right))
+  | Lambda (params, Some effects, _, body) ->
+      (TLambda (params |> List.map snd, None, fst (synthesize body)), effects)
   | Lambda (params, None, _, body) ->
-      (TLambda (params |> List.map snd, None, fst (synthesize body)), [])
+      ( TLambda (params |> List.map snd, None, fst (synthesize body)),
+        EffectSet.empty )
   | Bound (_name, None, exp, _next) -> synthesize exp
   | _ ->
       failwith
         (Format.asprintf "Failed to synthesize type for the term %a"
+           Ast_utils.pp_ast term)
+
+and synthesize_effect term =
+  match term with
+  | Int _ -> EffectSet.empty
+  | Add (left, right) ->
+      EffectSet.union (synthesize_effect left) (synthesize_effect right)
+  | Lambda (_params, Some effects, _return, _next) -> effects
+  | Perform (effect, _action, args) ->
+      let current_effect = EffectSet.singleton effect in
+      let arg_effects =
+        args |> List.map synthesize_effect
+        (* merge EffectSet list into single EffectSet *)
+        |> List.fold_left EffectSet.union EffectSet.empty
+      in
+      EffectSet.union current_effect arg_effects
+  | _ ->
+      failwith
+        (Format.asprintf "Failed to synthesize effect type for the term %a"
            Ast_utils.pp_ast term)
 
 let check_empty ast expected_type expected_effects =
